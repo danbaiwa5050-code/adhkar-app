@@ -24,13 +24,6 @@ jobs:
         run: node copy-fonts.js
         continue-on-error: true
       - run: npx cap add android
-      - name: App icon
-        run: |
-          mkdir -p assets
-          cp icon-only.png assets/icon-only.png
-          cp icon-foreground.png assets/icon-foreground.png
-          npx capacitor-assets generate --android --iconBackgroundColor '#0A4D3F' --iconBackgroundColorDark '#062F27'
-        continue-on-error: true
       - run: npx cap sync android
       - name: Notification permissions
         run: |
