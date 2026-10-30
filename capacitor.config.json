@@ -1,0 +1,7 @@
+{
+  "appId": "com.amadu.adhkar",
+  "appName": "Adhkar English and Hausa",
+  "webDir": "www",
+  "server": { "androidScheme": "https" },
+  "backgroundColor": "#EDF3F0"
+}

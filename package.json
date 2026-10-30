@@ -1,0 +1,18 @@
+{
+  "name": "adhkar-english-and-hausa",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Adhkar English and Hausa - Android app",
+  "dependencies": {
+    "@capacitor/android": "^7.0.0",
+    "@capacitor/cli": "^7.0.0",
+    "@capacitor/core": "^7.0.0",
+    "@capacitor/local-notifications": "^7.0.0",
+    "@fontsource/amiri": "^5.0.0",
+    "@fontsource/aref-ruqaa": "^5.0.0",
+    "@fontsource/lexend": "^5.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^3.0.0"
+  }
+}

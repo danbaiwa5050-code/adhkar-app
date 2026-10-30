@@ -1,0 +1,766 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0B5F4D">
+<title>Adhkar English and Hausa</title>
+<link rel="stylesheet" href="fonts/fonts.css">
+<style>
+/* Layout: one narrow column. Top bar (name + language), a deep green hero with the next prayer, today's checklist, a search box, then a two-column grid of colour-coded dua sets. Each set opens to cards with a bold coloured heading band on top. Floating tab bar at the bottom. */
+:root {
+  --bg: #EDF3F0;
+  --surface: #FFFFFF;
+  --ink: #10261F;
+  --muted: #4A675E;
+  --line: #D2E1DA;
+  --brand: #0B5F4D;
+  --brand-ink: #FFFFFF;
+  --gold: #8A6212;
+  --gold-fill: #E9C46A;
+  --gold-ink: #3A2A05;
+  --tint: #E4F0EA;
+  --hero-a: #08463A;
+  --hero-b: #0F7A63;
+  --c1: #0F6B58; --c2: #3B4AA8; --c3: #7B2F73; --c4: #0B6F8A; --c5: #8E5A10; --c6: #A12E3E; --c7: #2E6B2E; --c8: #2D5F93;
+  --font-ui: 'Lexend', system-ui, 'Segoe UI', sans-serif;
+  --font-ar: 'Amiri', 'Noto Naskh Arabic', 'Traditional Arabic', serif;
+  --font-ar-d: 'Aref Ruqaa', 'Amiri', serif;
+  --ar: 32px;
+  --pat: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Cg fill='none' stroke='white' stroke-opacity='.12' stroke-width='1.2'%3E%3Crect x='15' y='15' width='30' height='30'/%3E%3Crect x='15' y='15' width='30' height='30' transform='rotate(45 30 30)'/%3E%3Ccircle cx='30' cy='30' r='3'/%3E%3C/g%3E%3C/svg%3E");
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #07130F; --surface: #10221D; --ink: #E7F2EC; --muted: #9FBBB1; --line: #223C35;
+    --brand: #3FB89A; --brand-ink: #06201A; --gold: #E6BC5C; --tint: #16302A; --hero-a: #062F27; --hero-b: #0C5A49;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #07130F; --surface: #10221D; --ink: #E7F2EC; --muted: #9FBBB1; --line: #223C35;
+  --brand: #3FB89A; --brand-ink: #06201A; --gold: #E6BC5C; --tint: #16302A; --hero-a: #062F27; --hero-b: #0C5A49;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: 16px;
+  line-height: 1.5;
+  padding-block: 10px 128px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+button { font: inherit; color: inherit; cursor: pointer; border: 0; background: none; -webkit-tap-highlight-color: transparent; }
+button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid var(--gold-fill); outline-offset: 2px; }
+.col { max-width: 560px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+h1, h2, h3 { text-wrap: balance; }
+
+/* top bar */
+.top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+.bn { display: flex; flex-direction: column; line-height: 1.1; }
+.bn b { font-weight: 600; font-size: 1.3rem; }
+.bn small { font-size: .74rem; font-weight: 400; color: var(--muted); letter-spacing: .03em; }
+.brand { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 1.3rem; letter-spacing: .02em; }
+.brand .mark { width: 28px; height: 28px; color: var(--gold); flex: none; }
+.brand .arb { font-family: var(--font-ar-d); font-size: 1.6rem; line-height: 1; color: var(--gold); font-weight: 700; }
+.seg { display: flex; background: var(--surface); border: 2px solid var(--line); border-radius: 14px; padding: 3px; gap: 2px; }
+.seg button { min-height: 38px; padding: 0 11px; border-radius: 10px; font-size: .85rem; font-weight: 500; color: var(--muted); }
+.seg button[aria-pressed="true"] { background: var(--brand); color: var(--brand-ink); }
+.seg.size button { min-width: 44px; padding: 0 10px; }
+
+/* hero */
+.hero, .chead, .pnext { position: relative; overflow: hidden; color: #fff; border-radius: 28px; background: linear-gradient(150deg, var(--hero-a), var(--hero-b)); }
+.hero::before, .chead::before, .pnext::before, .ccard::before, .dh::before { content: ""; position: absolute; inset: 0; background-image: var(--pat); background-size: 60px 60px; pointer-events: none; }
+.hero > *, .chead > *, .pnext > *, .ccard > *, .dh > * { position: relative; }
+.hero { padding: 22px 20px 18px; display: flex; flex-direction: column; gap: 4px; }
+.hello { font-family: var(--font-ar-d); font-size: 2.1rem; line-height: 1.5; margin: 0; color: #F4D98C; }
+.hero h1 { font-size: 1.7rem; font-weight: 600; line-height: 1.2; margin: 0; }
+.hdate { margin: 0 0 12px; font-size: .9rem; opacity: .85; }
+.hchip { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; text-align: left; width: 100%; min-height: 56px; padding: 10px 14px; border-radius: 16px; background: rgba(255,255,255,.14); border: 1.5px solid rgba(255,255,255,.28); color: #fff; }
+.hchip .hn-l { flex-basis: 100%; font-size: .74rem; letter-spacing: .07em; text-transform: uppercase; opacity: .85; }
+.hchip .hn-r b { font-weight: 600; }
+.hchip .hn-r { font-size: 1.15rem; font-variant-numeric: tabular-nums; }
+.hchip .hn-c { font-size: .9rem; opacity: .9; }
+
+/* today */
+.today { background: var(--surface); border: 2px solid var(--line); border-radius: 22px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+.th { display: flex; justify-content: space-between; align-items: baseline; font-weight: 600; font-variant-numeric: tabular-nums; }
+.tbar { height: 6px; border-radius: 999px; background: var(--line); overflow: hidden; }
+.tbar i { display: block; height: 100%; background: var(--gold-fill); border-radius: 999px; transition: width .25s; }
+.tchips { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.tchip { padding: 0 6px; font-size: .88rem; min-width: 0; }
+.thint { margin: 0; color: var(--muted); font-size: .9rem; }
+
+/* search */
+.search { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 2px solid var(--line); border-radius: 18px; padding: 0 14px; min-height: 54px; }
+.search:focus-within { border-color: var(--brand); }
+.search svg { width: 22px; height: 22px; stroke: var(--muted); fill: none; stroke-width: 2; stroke-linecap: round; flex: none; }
+.search input { flex: 1; min-width: 0; border: 0; background: none; color: var(--ink); font: inherit; font-size: 1rem; min-height: 50px; outline: none; }
+.search input::placeholder { color: var(--muted); opacity: .85; }
+.rcount { color: var(--muted); font-size: .9rem; }
+
+/* category grid */
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.ccard { position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; gap: 14px; min-height: 156px; padding: 14px; border-radius: 24px; text-align: left; color: #fff; background: var(--c); background: linear-gradient(150deg, var(--c), color-mix(in srgb, var(--c) 60%, #000)); box-shadow: 0 6px 16px rgba(0,0,0,.14); transition: transform .12s; min-width: 0; }
+.ccard:active { transform: scale(.975); }
+.ccard .cat-ar { font-family: var(--font-ar-d); font-size: 1.5rem; line-height: 1.7; direction: rtl; text-align: right; color: #F6DE9F; overflow-wrap: anywhere; }
+.ccard .cbot { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.ccard b { font-weight: 600; font-size: 1.02rem; line-height: 1.25; overflow-wrap: anywhere; }
+.ccard small { font-size: .8rem; opacity: .88; }
+.now { align-self: flex-start; margin-bottom: 5px; font-size: .68rem; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; background: #F4D98C; color: #3A2A05; border-radius: 999px; padding: 2px 10px; }
+.note { background: var(--tint); border-radius: 14px; padding: 12px 14px; font-size: .86rem; color: var(--muted); margin: 0; }
+
+/* category header */
+.chead { --h: var(--c, var(--hero-a)); background: var(--c); background: linear-gradient(150deg, var(--c), color-mix(in srgb, var(--c) 58%, #000)); padding: 14px 18px 20px; display: flex; flex-direction: column; gap: 2px; }
+.chead .back { align-self: flex-start; min-height: 44px; padding: 0 12px 0 0; font-weight: 500; color: #fff; }
+.arname { font-family: var(--font-ar-d); font-size: 2.1rem; line-height: 1.6; margin: 0; direction: rtl; color: #F6DE9F; }
+.chead h2 { margin: 0; font-size: 1.35rem; font-weight: 600; }
+.chsub { margin: 0; opacity: .88; }
+.sizer { display: flex; align-items: center; justify-content: space-between; gap: 10px; color: var(--muted); font-size: .88rem; }
+
+/* dua card */
+.dua { background: var(--surface); border: 2px solid var(--line); border-radius: 24px; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 4px 14px rgba(0,0,0,.06); }
+.dh { position: relative; overflow: hidden; padding: 14px 18px; color: #fff; background: var(--c, var(--brand)); background: linear-gradient(120deg, var(--c, var(--brand)), color-mix(in srgb, var(--c, var(--brand)) 62%, #000)); }
+.dh h3 { margin: 0; font-size: 1.2rem; font-weight: 600; line-height: 1.3; }
+.dh h3 span { display: block; margin-top: 3px; font-size: .95rem; font-weight: 400; opacity: .92; }
+.dbody { padding: 16px 16px 8px; display: flex; flex-direction: column; gap: 12px; }
+.dnote { margin: 0; font-size: .9rem; color: var(--muted); background: var(--tint); border-radius: 12px; padding: 8px 12px; }
+.arbox { background: var(--tint); border-radius: 18px; padding: 14px 14px 8px; }
+.ar { font-family: var(--font-ar); font-size: var(--ar); line-height: 2.05; direction: rtl; text-align: right; margin: 0; overflow-wrap: anywhere; }
+.ar.mid { text-align: center; }
+.tr { margin: 0; font-style: italic; color: var(--muted); font-size: .95rem; }
+.mean { margin: 0; }
+.lab { display: inline-block; font-size: .68rem; font-weight: 600; letter-spacing: .06em; color: var(--gold); border: 1.5px solid var(--gold); border-radius: 6px; padding: 0 5px; margin-right: 8px; vertical-align: .1em; }
+.meta { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: .82rem; color: var(--muted); }
+.acts { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 8px 16px 14px; }
+.chip { min-height: 44px; padding: 0 16px; border-radius: 12px; background: var(--tint); font-weight: 500; font-size: .92rem; }
+.chip.cnt { background: var(--brand); color: var(--brand-ink); font-variant-numeric: tabular-nums; }
+.chip.cnt.done { background: var(--gold-fill); color: var(--gold-ink); }
+.chip[aria-pressed="true"] { background: var(--gold-fill); color: var(--gold-ink); }
+.spacer { flex: 1; }
+.empty { background: var(--surface); border: 2px dashed var(--line); border-radius: 22px; padding: 28px 18px; text-align: center; color: var(--muted); }
+.empty b { display: block; color: var(--ink); font-size: 1.1rem; margin-bottom: 4px; }
+h2.pg { font-size: 1.4rem; font-weight: 600; margin: 0; }
+.sub { margin: 4px 0 0; color: var(--muted); }
+
+/* tasbih */
+.tas { display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center; }
+.phrases { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 100%; }
+.phrases button { min-height: 48px; border-radius: 14px; background: var(--surface); border: 2px solid var(--line); font-size: .85rem; font-weight: 500; padding: 4px; }
+.phrases button[aria-pressed="true"] { background: var(--brand); border-color: var(--brand); color: var(--brand-ink); }
+.tas .ar { text-align: center; font-size: calc(var(--ar) + 8px); line-height: 1.7; }
+.ringbtn { position: relative; width: min(74vw, 280px); aspect-ratio: 1; border-radius: 50%; background: var(--surface); box-shadow: 0 10px 28px rgba(0,0,0,.14); display: grid; place-items: center; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+.ringbtn svg { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
+.ringbtn .trk { stroke: var(--line); }
+.ringbtn .bar { stroke: var(--brand); transition: stroke-dashoffset .15s; }
+.ringbtn.full .bar { stroke: var(--gold-fill); }
+.ringbtn:active { background: var(--tint); }
+.ringbtn .num { font-size: 4.4rem; font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums; }
+.ringbtn .of { display: block; font-size: .9rem; color: var(--muted); margin-top: 6px; }
+.ringbtn .in { position: relative; text-align: center; }
+.rounds { margin: 0; color: var(--muted); font-size: .92rem; }
+
+/* prayer times */
+.field { display: flex; flex-direction: column; gap: 6px; font-size: .85rem; color: var(--muted); font-weight: 500; min-width: 0; }
+.field select, .field input { min-height: 48px; width: 100%; border: 2px solid var(--line); border-radius: 12px; background: var(--surface); color: var(--ink); font: inherit; font-size: 1rem; padding: 0 12px; }
+.pgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.pgrid .full { grid-column: 1 / -1; }
+.pnext { padding: 20px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.pnext .lbl { font-size: .78rem; letter-spacing: .07em; text-transform: uppercase; opacity: .88; }
+.pnext .pnm { font-size: 1.15rem; font-weight: 600; }
+.pnext .pt { font-size: 2.6rem; font-weight: 600; line-height: 1.15; font-variant-numeric: tabular-nums; }
+.pnext .cd { font-size: .95rem; opacity: .95; }
+.pnext .arn { font-family: var(--font-ar-d); font-size: 2.4rem; text-align: right; direction: rtl; color: #F4D98C; }
+.plist { display: flex; flex-direction: column; gap: 8px; }
+.prow { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 10px; background: var(--surface); border: 2px solid var(--line); border-radius: 16px; padding: 12px 16px; }
+.prow.next { border-color: var(--brand); background: var(--tint); }
+.prow.minor { opacity: .8; }
+.prow b { font-weight: 600; }
+.prow small { display: block; font-family: var(--font-ar); font-size: 1.15rem; color: var(--gold); line-height: 1.4; }
+.ptime { font-size: 1.2rem; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.qibla { display: flex; gap: 16px; align-items: center; background: var(--surface); border: 2px solid var(--line); border-radius: 20px; padding: 14px 16px; }
+.qibla p { margin: 0; }
+.qibla .deg { font-size: 1.5rem; font-weight: 600; }
+
+/* reminders */
+.rrow { display: flex; align-items: center; justify-content: space-between; gap: 12px; background: var(--surface); border: 2px solid var(--line); border-radius: 20px; padding: 14px 16px; }
+.rrow b { font-weight: 600; }
+.rtime { display: flex; align-items: center; gap: 10px; margin-top: 6px; color: var(--muted); font-size: .85rem; }
+.rtime input { min-height: 44px; border: 2px solid var(--line); border-radius: 12px; background: var(--bg); color: var(--ink); font: inherit; font-size: 1.05rem; padding: 0 10px; font-variant-numeric: tabular-nums; }
+.sw { position: relative; flex: none; width: 58px; height: 34px; border-radius: 999px; background: var(--line); background: color-mix(in srgb, var(--muted) 40%, var(--surface)); transition: background .15s; }
+.sw::after { content: ""; position: absolute; top: 4px; left: 4px; width: 26px; height: 26px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.35); transition: transform .15s; }
+.sw[aria-checked="true"] { background: var(--brand); }
+.sw[aria-checked="true"]::after { transform: translateX(24px); }
+.rcard { background: var(--surface); border: 2px solid var(--line); border-radius: 20px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+.rcard p { margin: 0; }
+.rchips { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* nav + toast */
+.nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; padding: 18px max(12px, env(safe-area-inset-right, 0px)) calc(10px + env(safe-area-inset-bottom, 0px)) max(12px, env(safe-area-inset-left, 0px)); background: linear-gradient(180deg, transparent, var(--bg) 38%); pointer-events: none; }
+.nav .bar { pointer-events: auto; max-width: 560px; margin: 0 auto; display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; background: var(--surface); border: 2px solid var(--line); border-radius: 24px; padding: 6px; box-shadow: 0 10px 26px rgba(0,0,0,.16); }
+.nav button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 56px; border-radius: 18px; font-size: .7rem; min-width: 0; font-weight: 500; color: var(--muted); }
+.nav button svg { width: 24px; height: 24px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.nav button[aria-current="page"] { background: var(--brand); color: var(--brand-ink); }
+.toast { position: fixed; left: 50%; bottom: calc(100px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 10px 18px; border-radius: 999px; font-size: .9rem; z-index: 6; max-width: 90vw; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+
+<div class="col">
+  <header class="top" id="top"></header>
+  <main id="main" class="col"></main>
+</div>
+<nav class="nav" aria-label="Main"><div class="bar" id="nav"></div></nav>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script>
+(function () {
+  var $ = function (s) { return document.querySelector(s); };
+  var store = {
+    get: function (k, d) { try { var v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+    set: function (k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  };
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+  /* ---------- content (draft: have every text reviewed by a knowledgeable person before release) ---------- */
+  var D = {
+    hasbi: { ar: 'حَسْبِيَ اللَّهُ لَا إِلَهَ إِلَّا هُوَ عَلَيْهِ تَوَكَّلْتُ وَهُوَ رَبُّ الْعَرْشِ الْعَظِيمِ', tr: 'Ḥasbiyallāhu lā ilāha illā huwa, ʿalayhi tawakkaltu wa huwa rabbul-ʿarshil-ʿaẓīm.', en: 'Allah is enough for me. There is no god but Him. I rely on Him, and He is the Lord of the Mighty Throne.', ha: "Allah Ya isar mini, babu abin bautawa sai Shi. A gare Shi na dogara, kuma Shi ne Ubangijin Al'arshi mai girma.", rep: 7, src: 'Quran 9:129 · Abu Dawud' },
+    kalimat: { ar: 'أَعُوذُ بِكَلِمَاتِ اللَّهِ التَّامَّاتِ مِنْ شَرِّ مَا خَلَقَ', tr: 'Aʿūdhu bikalimātillāhit-tāmmāti min sharri mā khalaq.', en: 'I seek refuge in the perfect words of Allah from the evil of what He has created.', ha: 'Ina neman tsari da kalmomin Allah cikakku daga sharrin abin da Ya halitta.', rep: 3, src: 'Muslim' },
+    bihamdihi: { ar: 'سُبْحَانَ اللَّهِ وَبِحَمْدِهِ', tr: 'Subḥānallāhi wa biḥamdih.', en: 'Glory be to Allah and praise be to Him.', ha: 'Tsarki ya tabbata ga Allah, kuma godiya tasa ce.', rep: 100, src: 'Muslim' },
+    waking: { ar: 'الْحَمْدُ لِلَّهِ الَّذِي أَحْيَانَا بَعْدَ مَا أَمَاتَنَا وَإِلَيْهِ النُّشُورُ', tr: 'Alḥamdu lillāhil-ladhī aḥyānā baʿda mā amātanā wa ilayhin-nushūr.', en: 'All praise is for Allah who gave us life after causing us to die, and to Him is the resurrection.', ha: 'Godiya ta tabbata ga Allah wanda Ya raya mu bayan Ya kashe mu, kuma zuwa gare Shi ne tashin matattu.', rep: 1, src: 'Bukhari' },
+    sleeping: { ar: 'بِاسْمِكَ اللَّهُمَّ أَمُوتُ وَأَحْيَا', tr: 'Bismika Allāhumma amūtu wa aḥyā.', en: 'In Your name, O Allah, I die and I live.', ha: 'Da sunanka, ya Allah, nake mutuwa kuma nake rayuwa.', rep: 1, src: 'Bukhari' },
+    eat1: { ar: 'بِسْمِ اللَّهِ', tr: 'Bismillāh.', en: 'In the name of Allah.', ha: 'Da sunan Allah.', rep: 1, src: 'Abu Dawud · Tirmidhi' },
+    eat2: { ar: 'الْحَمْدُ لِلَّهِ الَّذِي أَطْعَمَنِي هَذَا وَرَزَقَنِيهِ مِنْ غَيْرِ حَوْلٍ مِنِّي وَلَا قُوَّةٍ', tr: 'Alḥamdu lillāhil-ladhī aṭʿamanī hādhā wa razaqanīhi min ghayri ḥawlin minnī wa lā quwwah.', en: 'All praise is for Allah who fed me this and provided it for me, without any power or strength from me.', ha: 'Godiya ta tabbata ga Allah wanda Ya ciyar da ni wannan, kuma Ya azurta ni da shi, ba tare da wani ƙarfi ko dabara daga gare ni ba.', rep: 1, src: 'Abu Dawud · Tirmidhi' },
+    leave: { ar: 'بِسْمِ اللَّهِ تَوَكَّلْتُ عَلَى اللَّهِ وَلَا حَوْلَ وَلَا قُوَّةَ إِلَّا بِاللَّهِ', tr: 'Bismillāhi tawakkaltu ʿalallāh, wa lā ḥawla wa lā quwwata illā billāh.', en: 'In the name of Allah. I rely on Allah. There is no power and no strength except with Allah.', ha: 'Da sunan Allah, na dogara ga Allah, kuma babu dabara ko ƙarfi sai da Allah.', rep: 1, src: 'Abu Dawud · Tirmidhi' },
+    travel: { ar: 'سُبْحَانَ الَّذِي سَخَّرَ لَنَا هَذَا وَمَا كُنَّا لَهُ مُقْرِنِينَ وَإِنَّا إِلَىٰ رَبِّنَا لَمُنْقَلِبُونَ', tr: 'Subḥānal-ladhī sakhkhara lanā hādhā wa mā kunnā lahu muqrinīn, wa innā ilā rabbinā lamunqalibūn.', en: 'Glory be to Him who subjected this to us, though we could not have done it ourselves. And to our Lord we will surely return.', ha: 'Tsarki ya tabbata ga wanda Ya hore mana wannan, ba mu kasance masu iya shi ba. Kuma lalle mu zuwa ga Ubangijinmu masu komawa ne.', rep: 1, src: 'Quran 43:13-14 · Abu Dawud' },
+    istighfar: { ar: 'أَسْتَغْفِرُ اللَّهَ', tr: 'Astaghfirullāh.', en: 'I seek forgiveness from Allah.', ha: 'Ina neman gafarar Allah.', rep: 3, src: 'Muslim' },
+    salam: { ar: 'اللَّهُمَّ أَنْتَ السَّلَامُ وَمِنْكَ السَّلَامُ تَبَارَكْتَ يَا ذَا الْجَلَالِ وَالْإِكْرَامِ', tr: 'Allāhumma antas-salām wa minkas-salām, tabārakta yā dhal-jalāli wal-ikrām.', en: 'O Allah, You are Peace and from You comes peace. Blessed are You, O Possessor of majesty and honor.', ha: 'Ya Allah, Kai ne Aminci, kuma daga gare Ka ne aminci yake. Albarka ta tabbata gare Ka, ya Ma\'abucin girma da karimci.', rep: 1, src: 'Muslim' },
+    yunus: { ar: 'لَا إِلَهَ إِلَّا أَنْتَ سُبْحَانَكَ إِنِّي كُنْتُ مِنَ الظَّالِمِينَ', tr: 'Lā ilāha illā anta subḥānaka innī kuntu minaẓ-ẓālimīn.', en: 'There is no god but You. Glory be to You. Truly, I have been among the wrongdoers.', ha: 'Babu abin bautawa sai Kai, tsarki ya tabbata gare Ka. Lalle ni na kasance daga azzalumai.', rep: 1, src: 'Quran 21:87 · Tirmidhi' },
+    sayyid: { ar: 'اللَّهُمَّ أَنْتَ رَبِّي لَا إِلَهَ إِلَّا أَنْتَ خَلَقْتَنِي وَأَنَا عَبْدُكَ وَأَنَا عَلَى عَهْدِكَ وَوَعْدِكَ مَا اسْتَطَعْتُ أَعُوذُ بِكَ مِنْ شَرِّ مَا صَنَعْتُ أَبُوءُ لَكَ بِنِعْمَتِكَ عَلَيَّ وَأَبُوءُ بِذَنْبِي فَاغْفِرْ لِي فَإِنَّهُ لَا يَغْفِرُ الذُّنُوبَ إِلَّا أَنْتَ', tr: 'Allāhumma anta rabbī lā ilāha illā anta, khalaqtanī wa anā ʿabduka, wa anā ʿalā ʿahdika wa waʿdika mastaṭaʿt, aʿūdhu bika min sharri mā ṣanaʿt, abūʾu laka biniʿmatika ʿalayya wa abūʾu bidhanbī faghfir lī fa-innahu lā yaghfirudh-dhunūba illā ant.', en: 'O Allah, You are my Lord. There is no god but You. You created me and I am Your servant. I hold to Your covenant and promise as much as I can. I seek refuge in You from the evil of what I have done. I admit Your favor upon me and I admit my sin, so forgive me, for none forgives sins but You.', ha: 'Ya Allah, Kai ne Ubangijina, babu abin bautawa sai Kai. Ka halicce ni, ni kuma bawanKa ne, kuma ina kan alƙawarinKa da ƙudurinKa gwargwadon ƙarfina. Ina neman tsarinKa daga sharrin abin da na aikata. Ina yarda da ni\'imarKa a gare ni, kuma ina yarda da laifina, don haka Ka gafarta mini, domin babu mai gafarta zunubai sai Kai.', rep: 1, src: 'Bukhari', when: { en: 'Morning and evening', ha: 'Safe da maraice' } },
+    mosque1: { ar: 'اللَّهُمَّ افْتَحْ لِي أَبْوَابَ رَحْمَتِكَ', tr: 'Allāhummaftaḥ lī abwāba raḥmatik.', en: 'O Allah, open for me the doors of Your mercy.', ha: 'Ya Allah, Ka buɗe mini ƙofofin rahamarKa.', rep: 1, src: 'Muslim', when: { en: 'When entering the mosque', ha: 'Lokacin shiga masallaci' } },
+    mosque2: { ar: 'اللَّهُمَّ إِنِّي أَسْأَلُكَ مِنْ فَضْلِكَ', tr: 'Allāhumma innī asʾaluka min faḍlik.', en: 'O Allah, I ask You for Your bounty.', ha: 'Ya Allah, ina roƙonKa daga falalarKa.', rep: 1, src: 'Muslim', when: { en: 'When leaving the mosque', ha: 'Lokacin fita daga masallaci' } },
+    wudu: { ar: 'أَشْهَدُ أَنْ لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ وَأَشْهَدُ أَنَّ مُحَمَّدًا عَبْدُهُ وَرَسُولُهُ', tr: 'Ashhadu an lā ilāha illallāhu waḥdahu lā sharīka lah, wa ashhadu anna Muḥammadan ʿabduhu wa rasūluh.', en: 'I bear witness that there is no god but Allah alone, with no partner, and I bear witness that Muhammad is His servant and messenger.', ha: 'Ina shaida cewa babu abin bautawa sai Allah Shi kaɗai, ba Shi da abokin tarayya, kuma ina shaida cewa Muhammadu bawansa ne kuma manzonsa.', rep: 1, src: 'Muslim', when: { en: 'After wudu', ha: 'Bayan alwala' } },
+    enter: { ar: 'بِسْمِ اللَّهِ وَلَجْنَا وَبِسْمِ اللَّهِ خَرَجْنَا وَعَلَى اللَّهِ رَبِّنَا تَوَكَّلْنَا', tr: 'Bismillāhi walajnā, wa bismillāhi kharajnā, wa ʿalallāhi rabbinā tawakkalnā.', en: 'In the name of Allah we enter, in the name of Allah we leave, and in Allah our Lord we place our trust.', ha: 'Da sunan Allah muka shiga, da sunan Allah muka fita, kuma ga Allah Ubangijinmu muka dogara.', rep: 1, src: 'Abu Dawud', when: { en: 'When entering the home', ha: 'Lokacin shiga gida' } },
+    cloth: { ar: 'الْحَمْدُ لِلَّهِ الَّذِي كَسَانِي هَذَا وَرَزَقَنِيهِ مِنْ غَيْرِ حَوْلٍ مِنِّي وَلَا قُوَّةٍ', tr: 'Alḥamdu lillāhil-ladhī kasānī hādhā wa razaqanīhi min ghayri ḥawlin minnī wa lā quwwah.', en: 'All praise is for Allah who clothed me with this and provided it for me, without any power or strength from me.', ha: 'Godiya ta tabbata ga Allah wanda Ya yi mini sutura da wannan, kuma Ya azurta ni da shi, ba tare da wani ƙarfi ko dabara daga gare ni ba.', rep: 1, src: 'Abu Dawud · Tirmidhi', when: { en: 'When putting on clothes', ha: 'Lokacin sa sutura' } },
+    toilet: { ar: 'بِسْمِ اللَّهِ اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنَ الْخُبُثِ وَالْخَبَائِثِ', tr: 'Bismillāh, Allāhumma innī aʿūdhu bika minal-khubuthi wal-khabāʾith.', en: 'In the name of Allah. O Allah, I seek refuge in You from male and female evil spirits.', ha: 'Da sunan Allah. Ya Allah, ina neman tsari gare Ka daga aljannu maza da mata.', rep: 1, src: 'Bukhari · Muslim', when: { en: 'Before entering the toilet', ha: 'Kafin shiga bayan gida' } },
+    ghufran: { ar: 'غُفْرَانَكَ', tr: 'Ghufrānak.', en: 'I ask for Your forgiveness.', ha: 'Ina neman gafararKa.', rep: 1, src: 'Abu Dawud · Tirmidhi', when: { en: 'After leaving the toilet', ha: 'Bayan fita daga bayan gida' } },
+    rain: { ar: 'اللَّهُمَّ صَيِّبًا نَافِعًا', tr: 'Allāhumma ṣayyiban nāfiʿā.', en: 'O Allah, make it a beneficial rain.', ha: 'Ya Allah, Ka sa ruwan ya zama mai amfani.', rep: 1, src: 'Bukhari', when: { en: 'When it rains', ha: 'Lokacin da ake ruwa' } },
+    sick: { ar: 'لَا بَأْسَ طَهُورٌ إِنْ شَاءَ اللَّهُ', tr: 'Lā baʾsa ṭahūrun in shāʾ Allāh.', en: 'No harm. It is a purification, if Allah wills.', ha: 'Babu damuwa, tsarkakewa ne, in Allah Ya so.', rep: 1, src: 'Bukhari', when: { en: 'When visiting the sick', ha: 'Lokacin ziyarar mara lafiya' } },
+    worry: { ar: 'اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنَ الْهَمِّ وَالْحَزَنِ وَالْعَجْزِ وَالْكَسَلِ وَالْبُخْلِ وَالْجُبْنِ وَضَلَعِ الدَّيْنِ وَغَلَبَةِ الرِّجَالِ', tr: 'Allāhumma innī aʿūdhu bika minal-hammi wal-ḥazan, wal-ʿajzi wal-kasal, wal-bukhli wal-jubn, wa ḍalaʿid-dayni wa ghalabatir-rijāl.', en: 'O Allah, I seek refuge in You from worry and sadness, weakness and laziness, stinginess and cowardice, the burden of debt and being overpowered by others.', ha: 'Ya Allah, ina neman tsarinKa daga damuwa da baƙin ciki, da rauni da ƙosawa, da rowa da tsoro, da nauyin bashi da rinjayen mutane.', rep: 1, src: 'Bukhari' },
+    zidni: { ar: 'رَبِّ زِدْنِي عِلْمًا', tr: 'Rabbi zidnī ʿilmā.', en: 'My Lord, increase me in knowledge.', ha: 'Ya Ubangijina, Ka ƙara mini ilimi.', rep: 1, src: 'Quran 20:114', q: true },
+    parents: { ar: 'رَبِّ ارْحَمْهُمَا كَمَا رَبَّيَانِي صَغِيرًا', tr: 'Rabbir-ḥamhumā kamā rabbayānī ṣaghīrā.', en: 'My Lord, have mercy on them both as they raised me when I was small.', ha: 'Ya Ubangijina, Ka yi musu rahama kamar yadda suka raine ni ina ƙarami.', rep: 1, src: 'Quran 17:24', q: true },
+    rabbana: { ar: 'رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الْآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ', tr: 'Rabbanā ātinā fid-dunyā ḥasanatan wa fil-ākhirati ḥasanatan wa qinā ʿadhāban-nār.', en: 'Our Lord, give us good in this world and good in the hereafter, and protect us from the punishment of the Fire.', ha: 'Ya Ubangijinmu, Ka ba mu alheri a duniya, da alheri a lahira, kuma Ka tsare mu daga azabar wuta.', rep: 1, src: 'Quran 2:201', q: true },
+    kursi: { ar: 'اللَّهُ لَا إِلَهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ لَا تَأْخُذُهُ سِنَةٌ وَلَا نَوْمٌ لَهُ مَا فِي السَّمَاوَاتِ وَمَا فِي الْأَرْضِ مَنْ ذَا الَّذِي يَشْفَعُ عِنْدَهُ إِلَّا بِإِذْنِهِ يَعْلَمُ مَا بَيْنَ أَيْدِيهِمْ وَمَا خَلْفَهُمْ وَلَا يُحِيطُونَ بِشَيْءٍ مِنْ عِلْمِهِ إِلَّا بِمَا شَاءَ وَسِعَ كُرْسِيُّهُ السَّمَاوَاتِ وَالْأَرْضَ وَلَا يَئُودُهُ حِفْظُهُمَا وَهُوَ الْعَلِيُّ الْعَظِيمُ', tr: 'Allāhu lā ilāha illā huwal-ḥayyul-qayyūm, lā taʾkhudhuhu sinatun wa lā nawm, lahu mā fis-samāwāti wa mā fil-arḍ, man dhal-ladhī yashfaʿu ʿindahu illā biidhnih, yaʿlamu mā bayna aydīhim wa mā khalfahum, wa lā yuḥīṭūna bishayʾin min ʿilmihi illā bimā shāʾ, wasiʿa kursiyyuhus-samāwāti wal-arḍ, wa lā yaʾūduhu ḥifẓuhumā, wa huwal-ʿaliyyul-ʿaẓīm.', en: 'Allah! There is no god but Him, the Ever-Living, the Sustainer of all. Neither drowsiness nor sleep overtakes Him. To Him belongs all that is in the heavens and the earth. Who can intercede with Him except by His permission? He knows what is before them and what is behind them, and they cannot grasp any of His knowledge except what He wills. His Throne extends over the heavens and the earth, and protecting them does not tire Him. He is the Most High, the Most Great.', ha: 'Allah, babu abin bautawa sai Shi, Rayayye, Tsayayye da kansa. Gyangyaɗi ba ya kama Shi, kuma barci ma. Nasa ne abin da yake cikin sammai da abin da yake cikin ƙasa. Wane ne zai yi ceto a wurinsa sai da izininsa? Yana sanin abin da yake gabansu da abin da yake bayansu. Kuma ba sa kewaye da kome daga iliminsa sai da abin da Ya so. Kursiyyinsa ya yalwaci sammai da ƙasa, kuma kiyaye su ba ya nauyayya masa. Kuma Shi ne Maɗaukaki, Mai girma.', rep: 1, src: 'Quran 2:255', q: true, when: { en: 'Morning, evening, after each prayer and before sleep', ha: 'Safe, maraice, bayan kowace sallah da kafin barci' } },
+    ikhlas: { ar: 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ قُلْ هُوَ اللَّهُ أَحَدٌ اللَّهُ الصَّمَدُ لَمْ يَلِدْ وَلَمْ يُولَدْ وَلَمْ يَكُنْ لَهُ كُفُوًا أَحَدٌ', tr: 'Bismillāhir-raḥmānir-raḥīm. Qul huwallāhu aḥad. Allāhuṣ-ṣamad. Lam yalid wa lam yūlad. Wa lam yakun lahū kufuwan aḥad.', en: 'In the name of Allah, the Most Gracious, the Most Merciful. Say: He is Allah, the One. Allah is the Self-Sufficient One whom all need. He has not had children, and He was not born. And there is none comparable to Him.', ha: 'Da sunan Allah, Mai rahama, Mai jinƙai. Ka ce: Shi ne Allah, Makaɗaici. Allah ne wanda ake nufa da bukatu. Bai haifa ba, kuma ba a haife Shi ba. Kuma babu wani da yake kamarsa.', rep: 3, src: 'Quran 112', q: true, when: { en: 'Morning and evening (3 times), after each prayer and before sleep', ha: 'Safe da maraice (sau 3), bayan kowace sallah da kafin barci' } },
+    falaq: { ar: 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ قُلْ أَعُوذُ بِرَبِّ الْفَلَقِ مِنْ شَرِّ مَا خَلَقَ وَمِنْ شَرِّ غَاسِقٍ إِذَا وَقَبَ وَمِنْ شَرِّ النَّفَّاثَاتِ فِي الْعُقَدِ وَمِنْ شَرِّ حَاسِدٍ إِذَا حَسَدَ', tr: 'Bismillāhir-raḥmānir-raḥīm. Qul aʿūdhu birabbil-falaq. Min sharri mā khalaq. Wa min sharri ghāsiqin idhā waqab. Wa min sharrin-naffāthāti fil-ʿuqad. Wa min sharri ḥāsidin idhā ḥasad.', en: 'In the name of Allah, the Most Gracious, the Most Merciful. Say: I seek refuge in the Lord of daybreak, from the evil of what He created, from the evil of darkness when it settles, from the evil of those who blow on knots, and from the evil of an envier when he envies.', ha: 'Da sunan Allah, Mai rahama, Mai jinƙai. Ka ce: Ina neman tsari da Ubangijin asuba, daga sharrin abin da Ya halitta, da sharrin dare idan ya yi duhu, da sharrin masu hura ƙulle-ƙulle, da sharrin mai hassada idan ya yi hassada.', rep: 3, src: 'Quran 113', q: true, when: { en: 'Morning and evening (3 times), after each prayer and before sleep', ha: 'Safe da maraice (sau 3), bayan kowace sallah da kafin barci' } },
+    nas: { ar: 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ قُلْ أَعُوذُ بِرَبِّ النَّاسِ مَلِكِ النَّاسِ إِلَٰهِ النَّاسِ مِنْ شَرِّ الْوَسْوَاسِ الْخَنَّاسِ الَّذِي يُوَسْوِسُ فِي صُدُورِ النَّاسِ مِنَ الْجِنَّةِ وَالنَّاسِ', tr: 'Bismillāhir-raḥmānir-raḥīm. Qul aʿūdhu birabbin-nās. Malikin-nās. Ilāhin-nās. Min sharril-waswāsil-khannās. Alladhī yuwaswisu fī ṣudūrin-nās. Minal-jinnati wan-nās.', en: 'In the name of Allah, the Most Gracious, the Most Merciful. Say: I seek refuge in the Lord of mankind, the King of mankind, the God of mankind, from the evil of the whisperer who slinks away, who whispers into the hearts of people, from among jinn and people.', ha: 'Da sunan Allah, Mai rahama, Mai jinƙai. Ka ce: Ina neman tsari da Ubangijin mutane, Sarkin mutane, Abin bautawar mutane, daga sharrin mai waswasi, mai ɓoyewa, wanda yake yin waswasi a cikin zukatan mutane, daga aljannu da mutane.', rep: 3, src: 'Quran 114', q: true, when: { en: 'Morning and evening (3 times), after each prayer and before sleep', ha: 'Safe da maraice (sau 3), bayan kowace sallah da kafin barci' } },
+    baq285: { ar: 'آمَنَ الرَّسُولُ بِمَا أُنْزِلَ إِلَيْهِ مِنْ رَبِّهِ وَالْمُؤْمِنُونَ كُلٌّ آمَنَ بِاللَّهِ وَمَلَائِكَتِهِ وَكُتُبِهِ وَرُسُلِهِ لَا نُفَرِّقُ بَيْنَ أَحَدٍ مِنْ رُسُلِهِ وَقَالُوا سَمِعْنَا وَأَطَعْنَا غُفْرَانَكَ رَبَّنَا وَإِلَيْكَ الْمَصِيرُ', tr: '', en: 'The Messenger believes in what was sent down to him from his Lord, and so do the believers. All believe in Allah, His angels, His books and His messengers. They say: We make no difference between any of His messengers. They say: We hear and we obey. Your forgiveness, our Lord, and to You is the final return.', ha: 'Manzo ya yi imani da abin da aka saukar masa daga Ubangijinsa, haka ma muminai. Dukansu sun yi imani da Allah da mala\'ikunsa da littattafansa da manzanninsa. Suna cewa: Ba ma bambanta tsakanin ɗaya daga manzanninsa. Kuma suka ce: Mun ji, mun kuma yi biyayya. Gafararka, ya Ubangijinmu, kuma zuwa gare Ka ne makoma.', rep: 1, src: 'Quran 2:285', q: true, when: { en: 'At night', ha: 'Da dare' } },
+    baq286: { ar: 'لَا يُكَلِّفُ اللَّهُ نَفْسًا إِلَّا وُسْعَهَا لَهَا مَا كَسَبَتْ وَعَلَيْهَا مَا اكْتَسَبَتْ رَبَّنَا لَا تُؤَاخِذْنَا إِنْ نَسِينَا أَوْ أَخْطَأْنَا رَبَّنَا وَلَا تَحْمِلْ عَلَيْنَا إِصْرًا كَمَا حَمَلْتَهُ عَلَى الَّذِينَ مِنْ قَبْلِنَا رَبَّنَا وَلَا تُحَمِّلْنَا مَا لَا طَاقَةَ لَنَا بِهِ وَاعْفُ عَنَّا وَاغْفِرْ لَنَا وَارْحَمْنَا أَنْتَ مَوْلَانَا فَانْصُرْنَا عَلَى الْقَوْمِ الْكَافِرِينَ', tr: '', en: 'Allah does not burden a soul beyond what it can bear. It will have what it earned and be held to what it earned. Our Lord, do not blame us if we forget or make a mistake. Our Lord, do not place on us a burden like the one You placed on those before us. Our Lord, do not make us carry what we have no strength for. Pardon us, forgive us and have mercy on us. You are our Protector, so help us against those who reject faith.', ha: 'Allah ba Ya ɗaukar wa rai nauyi sai gwargwadon iyawarsa. Yana da abin da ya sama, kuma yana da laifin abin da ya aikata. Ya Ubangijinmu, kada Ka kama mu idan mun manta ko mun yi kuskure. Ya Ubangijinmu, kada Ka ɗora mana nauyi kamar yadda Ka ɗora shi a kan waɗanda suke gabaninmu. Ya Ubangijinmu, kada Ka ɗora mana abin da ba mu da ƙarfin ɗauka. Ka yi mana afuwa, Ka gafarta mana, Ka kuma yi mana rahama. Kai ne Majiɓincinmu, don haka Ka taimake mu a kan mutanen da suka kafirta.', rep: 1, src: 'Quran 2:286', q: true, when: { en: 'At night', ha: 'Da dare' } },
+    asbahna: { ar: 'أَصْبَحْنَا وَأَصْبَحَ الْمُلْكُ لِلَّهِ وَالْحَمْدُ لِلَّهِ لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ', tr: 'Aṣbaḥnā wa aṣbaḥal-mulku lillāh, wal-ḥamdu lillāh, lā ilāha illallāhu waḥdahu lā sharīka lah, lahul-mulku wa lahul-ḥamdu wa huwa ʿalā kulli shayʾin qadīr.', en: 'We have entered the morning and the dominion belongs to Allah, and praise is for Allah. There is no god but Allah alone, with no partner. His is the dominion, His is the praise, and He has power over all things.', ha: 'Mun shiga safiya, kuma mulki na Allah ne, godiya ta tabbata ga Allah. Babu abin bautawa sai Allah Shi kaɗai, ba Shi da abokin tarayya. Mulki nasa ne, godiya tasa ce, kuma Shi mai iko ne a kan komai.', rep: 1, src: 'Muslim', when: { en: 'Morning', ha: 'Safe' } },
+    amsayna: { ar: 'أَمْسَيْنَا وَأَمْسَى الْمُلْكُ لِلَّهِ وَالْحَمْدُ لِلَّهِ لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ', tr: 'Amsaynā wa amsal-mulku lillāh, wal-ḥamdu lillāh, lā ilāha illallāhu waḥdahu lā sharīka lah, lahul-mulku wa lahul-ḥamdu wa huwa ʿalā kulli shayʾin qadīr.', en: 'We have entered the evening and the dominion belongs to Allah, and praise is for Allah. There is no god but Allah alone, with no partner. His is the dominion, His is the praise, and He has power over all things.', ha: 'Mun shiga maraice, kuma mulki na Allah ne, godiya ta tabbata ga Allah. Babu abin bautawa sai Allah Shi kaɗai, ba Shi da abokin tarayya. Mulki nasa ne, godiya tasa ce, kuma Shi mai iko ne a kan komai.', rep: 1, src: 'Muslim', when: { en: 'Evening', ha: 'Maraice' } },
+    radhitu: { ar: 'رَضِيتُ بِاللَّهِ رَبًّا وَبِالْإِسْلَامِ دِينًا وَبِمُحَمَّدٍ نَبِيًّا', tr: 'Raḍītu billāhi rabbā, wa bil-islāmi dīnā, wa bi-Muḥammadin nabiyyā.', en: 'I am pleased with Allah as my Lord, Islam as my religion and Muhammad as my Prophet.', ha: 'Na yarda da Allah a matsayin Ubangiji, da Musulunci a matsayin addini, da Muhammadu a matsayin Annabi.', rep: 3, src: 'Abu Dawud · Tirmidhi', when: { en: 'Morning and evening', ha: 'Safe da maraice' } },
+    tahlil: { ar: 'لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ', tr: 'Lā ilāha illallāhu waḥdahu lā sharīka lah, lahul-mulku wa lahul-ḥamdu wa huwa ʿalā kulli shayʾin qadīr.', en: 'There is no god but Allah alone, with no partner. His is the dominion, His is the praise, and He has power over all things.', ha: 'Babu abin bautawa sai Allah Shi kaɗai, ba Shi da abokin tarayya. Mulki nasa ne, godiya tasa ce, kuma Shi mai iko ne a kan komai.', rep: 10, src: 'Bukhari · Muslim · Tirmidhi' },
+    kalimatan: { ar: 'سُبْحَانَ اللَّهِ وَبِحَمْدِهِ سُبْحَانَ اللَّهِ الْعَظِيمِ', tr: 'Subḥānallāhi wa biḥamdihi, subḥānallāhil-ʿaẓīm.', en: 'Glory be to Allah and praise be to Him. Glory be to Allah the Most Great.', ha: 'Tsarki ya tabbata ga Allah, kuma godiya tasa ce. Tsarki ya tabbata ga Allah Mai girma.', rep: 1, src: 'Bukhari · Muslim' },
+    hawqala: { ar: 'لَا حَوْلَ وَلَا قُوَّةَ إِلَّا بِاللَّهِ', tr: 'Lā ḥawla wa lā quwwata illā billāh.', en: 'There is no power and no strength except with Allah.', ha: 'Babu dabara ko ƙarfi sai da Allah.', rep: 1, src: 'Bukhari · Muslim' },
+    salawat: { ar: 'اللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ وَعَلَى آلِ مُحَمَّدٍ كَمَا صَلَّيْتَ عَلَى إِبْرَاهِيمَ وَعَلَى آلِ إِبْرَاهِيمَ إِنَّكَ حَمِيدٌ مَجِيدٌ اللَّهُمَّ بَارِكْ عَلَى مُحَمَّدٍ وَعَلَى آلِ مُحَمَّدٍ كَمَا بَارَكْتَ عَلَى إِبْرَاهِيمَ وَعَلَى آلِ إِبْرَاهِيمَ إِنَّكَ حَمِيدٌ مَجِيدٌ', tr: 'Allāhumma ṣalli ʿalā Muḥammadin wa ʿalā āli Muḥammad, kamā ṣallayta ʿalā Ibrāhīma wa ʿalā āli Ibrāhīm, innaka ḥamīdun majīd. Allāhumma bārik ʿalā Muḥammadin wa ʿalā āli Muḥammad, kamā bārakta ʿalā Ibrāhīma wa ʿalā āli Ibrāhīm, innaka ḥamīdun majīd.', en: 'O Allah, send prayers upon Muhammad and the family of Muhammad, as You sent prayers upon Ibrahim and the family of Ibrahim. You are Praiseworthy and Glorious. O Allah, bless Muhammad and the family of Muhammad, as You blessed Ibrahim and the family of Ibrahim. You are Praiseworthy and Glorious.', ha: 'Ya Allah, Ka yi salati ga Muhammadu da iyalan Muhammadu kamar yadda Ka yi salati ga Ibrahim da iyalan Ibrahim. Lalle Kai Abin yabo ne, Mai girma. Ya Allah, Ka yi albarka ga Muhammadu da iyalan Muhammadu kamar yadda Ka yi albarka ga Ibrahim da iyalan Ibrahim. Lalle Kai Abin yabo ne, Mai girma.', rep: 1, src: 'Bukhari', when: { en: 'In the final sitting of prayer, and whenever the Prophet is mentioned', ha: 'A tahiya ta ƙarshe ta sallah, da duk lokacin da aka ambaci Annabi' } },
+    host: { ar: 'اللَّهُمَّ بَارِكْ لَهُمْ فِيمَا رَزَقْتَهُمْ وَاغْفِرْ لَهُمْ وَارْحَمْهُمْ', tr: 'Allāhumma bārik lahum fīmā razaqtahum, waghfir lahum warḥamhum.', en: 'O Allah, bless them in what You have provided for them, forgive them and have mercy on them.', ha: 'Ya Allah, Ka yi musu albarka a cikin abin da Ka azurta su da shi, Ka gafarta musu, Ka kuma yi musu rahama.', rep: 1, src: 'Muslim', when: { en: 'For the host, after eating at their home', ha: 'Ga mai masauki, bayan cin abinci a gidansa' } },
+    breakfast: { ar: 'ذَهَبَ الظَّمَأُ وَابْتَلَّتِ الْعُرُوقُ وَثَبَتَ الْأَجْرُ إِنْ شَاءَ اللَّهُ', tr: 'Dhahabaẓ-ẓamaʾu wabtallatil-ʿurūqu wa thabatal-ajru in shāʾ Allāh.', en: 'The thirst has gone, the veins are moist, and the reward is confirmed, if Allah wills.', ha: 'Ƙishirwa ta tafi, jijiyoyi sun jike, kuma lada ya tabbata, in Allah Ya so.', rep: 1, src: 'Abu Dawud', when: { en: 'When breaking the fast', ha: 'Lokacin buɗe baki' } },
+    qadr: { ar: 'اللَّهُمَّ إِنَّكَ عَفُوٌّ تُحِبُّ الْعَفْوَ فَاعْفُ عَنِّي', tr: 'Allāhumma innaka ʿafuwwun tuḥibbul-ʿafwa faʿfu ʿannī.', en: 'O Allah, You are Forgiving and You love to forgive, so forgive me.', ha: 'Ya Allah, lalle Kai Mai yawan afuwa ne, Kana son afuwa, don haka Ka yi mini afuwa.', rep: 1, src: 'Tirmidhi', when: { en: 'In the last ten nights of Ramadan', ha: 'A cikin kwanaki goma na ƙarshe na Ramadan' } },
+    greet: { ar: 'السَّلَامُ عَلَيْكُمْ وَرَحْمَةُ اللَّهِ وَبَرَكَاتُهُ', tr: 'As-salāmu ʿalaykum wa raḥmatullāhi wa barakātuh.', en: 'Peace be upon you, and the mercy of Allah and His blessings.', ha: 'Aminci da rahamar Allah da albarkarsa su tabbata a gare ku.', rep: 1, src: 'Abu Dawud · Tirmidhi', when: { en: 'Greeting', ha: 'Gaisuwa' } },
+    reply: { ar: 'وَعَلَيْكُمُ السَّلَامُ وَرَحْمَةُ اللَّهِ وَبَرَكَاتُهُ', tr: 'Wa ʿalaykumus-salāmu wa raḥmatullāhi wa barakātuh.', en: 'And upon you be peace, and the mercy of Allah and His blessings.', ha: 'Kuma aminci da rahamar Allah da albarkarsa su tabbata a gare ku.', rep: 1, src: 'Abu Dawud · Tirmidhi', when: { en: 'Replying to the greeting', ha: 'Amsa gaisuwa' } },
+    jazak: { ar: 'جَزَاكَ اللَّهُ خَيْرًا', tr: 'Jazākallāhu khayran.', en: 'May Allah reward you with goodness.', ha: 'Allah Ya saka maka da alheri.', rep: 1, src: 'Tirmidhi', when: { en: 'Thanking someone', ha: 'Godiya ga mutum' } },
+    hamd: { ar: 'الْحَمْدُ لِلَّهِ', tr: 'Alḥamdu lillāh.', en: 'All praise is for Allah.', ha: 'Godiya ta tabbata ga Allah.', rep: 1, src: 'Bukhari', when: { en: 'After sneezing', ha: 'Bayan atishawa' } },
+    yarhamuk: { ar: 'يَرْحَمُكَ اللَّهُ', tr: 'Yarḥamukallāh.', en: 'May Allah have mercy on you.', ha: 'Allah Ya yi maka rahama.', rep: 1, src: 'Bukhari', when: { en: 'To someone who sneezed and praised Allah', ha: 'Ga wanda ya yi atishawa ya yi godiya ga Allah' } },
+    yahdikum: { ar: 'يَهْدِيكُمُ اللَّهُ وَيُصْلِحُ بَالَكُمْ', tr: 'Yahdīkumullāhu wa yuṣliḥu bālakum.', en: 'May Allah guide you and set your affairs right.', ha: 'Allah Ya shiryar da ku, Ya kuma gyara al\'amuranku.', rep: 1, src: 'Bukhari', when: { en: 'Reply to the one who sneezed', ha: 'Amsa ga wanda ya yi atishawa' } },
+    newlywed: { ar: 'بَارَكَ اللَّهُ لَكَ وَبَارَكَ عَلَيْكَ وَجَمَعَ بَيْنَكُمَا فِي خَيْرٍ', tr: 'Bārakallāhu laka wa bāraka ʿalayka wa jamaʿa baynakumā fī khayr.', en: 'May Allah bless you, bless you further, and bring you together in goodness.', ha: 'Allah Ya yi maka albarka, Ya yi albarka a kanka, Ya kuma haɗa ku a cikin alheri.', rep: 1, src: 'Abu Dawud · Tirmidhi', when: { en: 'Congratulating a newly married couple', ha: 'Taya ango da amarya murna' } },
+    istirja: { ar: 'إِنَّا لِلَّهِ وَإِنَّا إِلَيْهِ رَاجِعُونَ', tr: 'Innā lillāhi wa innā ilayhi rājiʿūn.', en: 'Indeed we belong to Allah, and indeed to Him we will return.', ha: 'Lalle mu na Allah ne, kuma lalle mu zuwa gare Shi masu komawa ne.', rep: 1, src: 'Quran 2:156', q: true, when: { en: 'When hit by a hardship or loss', ha: 'Lokacin da musiba ko rashi ya same ka' } },
+    ajurni: { ar: 'اللَّهُمَّ أْجُرْنِي فِي مُصِيبَتِي وَأَخْلِفْ لِي خَيْرًا مِنْهَا', tr: 'Allāhumma ʾjurnī fī muṣībatī wa akhlif lī khayran minhā.', en: 'O Allah, reward me for my affliction and replace it with something better.', ha: 'Ya Allah, Ka ba ni lada a cikin musibata, kuma Ka musanya mini da abin da ya fi ta alheri.', rep: 1, src: 'Muslim', when: { en: 'After saying Innā lillāh', ha: 'Bayan an ce Innā lillāh' } },
+    rabbighfir: { ar: 'رَبِّ اغْفِرْ لِي وَتُبْ عَلَيَّ إِنَّكَ أَنْتَ التَّوَّابُ الرَّحِيمُ', tr: 'Rabbigh-fir lī wa tub ʿalayya innaka antat-tawwābur-raḥīm.', en: 'My Lord, forgive me and accept my repentance. You are the Ever-Accepting of repentance, the Most Merciful.', ha: 'Ya Ubangijina, Ka gafarta mini, Ka karɓi tubana. Lalle Kai ne Mai karɓar tuba, Mai jinƙai.', rep: 1, src: 'Abu Dawud · Tirmidhi' },
+    zalamna: { ar: 'رَبَّنَا ظَلَمْنَا أَنْفُسَنَا وَإِنْ لَمْ تَغْفِرْ لَنَا وَتَرْحَمْنَا لَنَكُونَنَّ مِنَ الْخَاسِرِينَ', tr: 'Rabbanā ẓalamnā anfusanā wa in lam taghfir lanā wa tarḥamnā lanakūnanna minal-khāsirīn.', en: 'Our Lord, we have wronged ourselves. If You do not forgive us and have mercy on us, we will surely be among the losers.', ha: 'Ya Ubangijinmu, mun zalunci kanmu, kuma idan ba Ka gafarta mana ba, Ka yi mana rahama, lalle za mu kasance daga masu hasara.', rep: 1, src: 'Quran 7:23', q: true },
+    huda: { ar: 'اللَّهُمَّ إِنِّي أَسْأَلُكَ الْهُدَى وَالتُّقَى وَالْعَفَافَ وَالْغِنَى', tr: 'Allāhumma innī asʾalukal-hudā wat-tuqā wal-ʿafāfa wal-ghinā.', en: 'O Allah, I ask You for guidance, piety, chastity and self-sufficiency.', ha: 'Ya Allah, ina roƙonKa shiriya da taƙawa da kamun kai da wadatar zuci.', rep: 1, src: 'Muslim' },
+    istiftah: { ar: "سُبْحَانَكَ اللَّهُمَّ وَبِحَمْدِكَ وَتَبَارَكَ اسْمُكَ وَتَعَالَى جَدُّكَ وَلَا إِلَهَ غَيْرُكَ", tr: "Subḥānakallāhumma wa biḥamdik, wa tabārakasmuka, wa taʿālā jadduka, wa lā ilāha ghayruk.", en: "Glory be to You, O Allah, and praise be to You. Blessed is Your name, exalted is Your majesty, and there is no god but You.", ha: "Tsarki ya tabbata gare Ka, ya Allah, kuma godiya taKa ce. Sunanka ya yi albarka, girmanKa ya ɗaukaka, kuma babu abin bautawa sai Kai.", rep: 1, src: "Abu Dawud · Tirmidhi · Nasai · Ibn Majah", when: { en: "At the start of the prayer, after the opening takbir", ha: "A farkon sallah, bayan kabbarar harama" } },
+    ruku: { ar: "سُبْحَانَ رَبِّيَ الْعَظِيمِ", tr: "Subḥāna rabbiyal-ʿaẓīm.", en: "Glory be to my Lord, the Most Great.", ha: "Tsarki ya tabbata ga Ubangijina Mai girma.", rep: 3, src: "Muslim", when: { en: "In ruku (bowing)", ha: "A cikin ruku'u" } },
+    sujud: { ar: "سُبْحَانَ رَبِّيَ الْأَعْلَى", tr: "Subḥāna rabbiyal-aʿlā.", en: "Glory be to my Lord, the Most High.", ha: "Tsarki ya tabbata ga Ubangijina Maɗaukaki.", rep: 3, src: "Muslim", when: { en: "In sujud (prostration)", ha: "A cikin sujada" } },
+    jalsa: { ar: "رَبِّ اغْفِرْ لِي رَبِّ اغْفِرْ لِي", tr: "Rabbighfir lī, rabbighfir lī.", en: "My Lord, forgive me. My Lord, forgive me.", ha: "Ya Ubangijina, Ka gafarta mini. Ya Ubangijina, Ka gafarta mini.", rep: 1, src: "Abu Dawud · Ibn Majah", when: { en: "Between the two prostrations", ha: "Tsakanin sujada biyu" } },
+    tashahhud: { ar: "التَّحِيَّاتُ لِلَّهِ وَالصَّلَوَاتُ وَالطَّيِّبَاتُ السَّلَامُ عَلَيْكَ أَيُّهَا النَّبِيُّ وَرَحْمَةُ اللَّهِ وَبَرَكَاتُهُ السَّلَامُ عَلَيْنَا وَعَلَى عِبَادِ اللَّهِ الصَّالِحِينَ أَشْهَدُ أَنْ لَا إِلَهَ إِلَّا اللَّهُ وَأَشْهَدُ أَنَّ مُحَمَّدًا عَبْدُهُ وَرَسُولُهُ", tr: "At-taḥiyyātu lillāhi waṣ-ṣalawātu waṭ-ṭayyibāt. As-salāmu ʿalayka ayyuhan-nabiyyu wa raḥmatullāhi wa barakātuh. As-salāmu ʿalaynā wa ʿalā ʿibādillāhiṣ-ṣāliḥīn. Ashhadu an lā ilāha illallāh, wa ashhadu anna Muḥammadan ʿabduhu wa rasūluh.", en: "All greetings, prayers and good words are for Allah. Peace be upon you, O Prophet, and the mercy of Allah and His blessings. Peace be upon us and upon the righteous servants of Allah. I bear witness that there is no god but Allah, and I bear witness that Muhammad is His servant and messenger.", ha: "Dukkan gaisuwa da sallolin da kyawawan maganganu na Allah ne. Aminci ya tabbata a gare ka, ya Annabi, da rahamar Allah da albarkarsa. Aminci ya tabbata a gare mu da bayin Allah salihai. Ina shaida cewa babu abin bautawa sai Allah, kuma ina shaida cewa Muhammadu bawansa ne kuma manzonsa.", rep: 1, src: "Bukhari · Muslim", when: { en: "In the sitting of the prayer (Tashahhud)", ha: "A zaman tahiya a cikin sallah" } },
+    beforesalam: { ar: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ عَذَابِ جَهَنَّمَ وَمِنْ عَذَابِ الْقَبْرِ وَمِنْ فِتْنَةِ الْمَحْيَا وَالْمَمَاتِ وَمِنْ شَرِّ فِتْنَةِ الْمَسِيحِ الدَّجَّالِ", tr: "Allāhumma innī aʿūdhu bika min ʿadhābi jahannam, wa min ʿadhābil-qabr, wa min fitnatil-maḥyā wal-mamāt, wa min sharri fitnatil-masīḥid-dajjāl.", en: "O Allah, I seek refuge in You from the punishment of Hellfire, from the punishment of the grave, from the trials of life and death, and from the evil of the trial of the False Messiah.", ha: "Ya Allah, ina neman tsarinKa daga azabar Jahannama, da azabar kabari, da fitinar rayuwa da mutuwa, da sharrin fitinar Dujal.", rep: 1, src: "Muslim", when: { en: "After the final tashahhud, before the salam", ha: "Bayan tahiya ta ƙarshe, kafin sallama" } },
+    adhan: { ar: "اللَّهُمَّ رَبَّ هَذِهِ الدَّعْوَةِ التَّامَّةِ وَالصَّلَاةِ الْقَائِمَةِ آتِ مُحَمَّدًا الْوَسِيلَةَ وَالْفَضِيلَةَ وَابْعَثْهُ مَقَامًا مَحْمُودًا الَّذِي وَعَدْتَهُ", tr: "Allāhumma rabba hādhihid-daʿwatit-tāmmah, waṣ-ṣalātil-qāʾimah, āti Muḥammadanil-wasīlata wal-faḍīlah, wabʿathhu maqāmam-maḥmūdanil-ladhī waʿadtah.", en: "O Allah, Lord of this perfect call and the prayer to be established, grant Muhammad the intercession and the virtue, and raise him to the praised station You have promised him.", ha: "Ya Allah, Ubangijin wannan kira cikakkiya da sallar da za a tsayar, Ka ba Muhammadu matsayin wasila da falala, Ka kuma tashe shi a matsayin abin yabo wanda Ka yi masa alƙawari.", rep: 1, src: "Bukhari", when: { en: "After hearing the adhan (call to prayer)", ha: "Bayan jin kiran sallah (adhan)" } },
+    a3inni: { ar: "اللَّهُمَّ أَعِنِّي عَلَى ذِكْرِكَ وَشُكْرِكَ وَحُسْنِ عِبَادَتِكَ", tr: "Allāhumma aʿinnī ʿalā dhikrika wa shukrika wa ḥusni ʿibādatik.", en: "O Allah, help me to remember You, to thank You, and to worship You well.", ha: "Ya Allah, Ka taimake ni in riƙa ambatonKa, in riƙa gode maKa, in kuma kyautata bautaKa.", rep: 1, src: "Abu Dawud · Nasai", when: { en: "After each prayer", ha: "Bayan kowace sallah" } },
+    angry: { ar: "أَعُوذُ بِاللَّهِ مِنَ الشَّيْطَانِ الرَّجِيمِ", tr: "Aʿūdhu billāhi minash-shayṭānir-rajīm.", en: "I seek refuge in Allah from the accursed devil.", ha: "Ina neman tsarin Allah daga shaiɗan korarre.", rep: 1, src: "Bukhari · Muslim", when: { en: "When angry", ha: "Lokacin fushi" } },
+    bismillahilladhi: { ar: "بِسْمِ اللَّهِ الَّذِي لَا يَضُرُّ مَعَ اسْمِهِ شَيْءٌ فِي الْأَرْضِ وَلَا فِي السَّمَاءِ وَهُوَ السَّمِيعُ الْعَلِيمُ", tr: "Bismillāhil-ladhī lā yaḍurru maʿasmihi shayʾun fil-arḍi wa lā fis-samāʾi wa huwas-samīʿul-ʿalīm.", en: "In the name of Allah, with whose name nothing on earth or in heaven can cause harm, and He is the All-Hearing, the All-Knowing.", ha: "Da sunan Allah wanda babu abin da yake cutarwa tare da sunansa, a cikin ƙasa ko a sama, kuma Shi ne Mai ji, Masani.", rep: 3, src: "Abu Dawud · Tirmidhi", when: { en: "Morning and evening, for protection", ha: "Safe da maraice, don kariya" } },
+    children: { ar: "أُعِيذُكُمَا بِكَلِمَاتِ اللَّهِ التَّامَّةِ مِنْ كُلِّ شَيْطَانٍ وَهَامَّةٍ وَمِنْ كُلِّ عَيْنٍ لَامَّةٍ", tr: "Uʿīdhukumā bikalimātillāhit-tāmmati min kulli shayṭānin wa hāmmah, wa min kulli ʿaynin lāmmah.", en: "I seek protection for you both in the perfect words of Allah, from every devil and harmful creature, and from every evil eye. (For one child, say أُعِيذُكَ, uʿīdhuka.)", ha: "Ina nema muku tsari da cikakkun kalmomin Allah daga kowane shaiɗan da dabba mai cutarwa, da kowace mummunar ido. (Ga yaro ɗaya a ce: أُعِيذُكَ, uʿīdhuka.)", rep: 1, src: "Bukhari", when: { en: "Seeking Allah's protection for children", ha: "Neman kariyar Allah ga yara" } },
+    fearpeople: { ar: "اللَّهُمَّ إِنَّا نَجْعَلُكَ فِي نُحُورِهِمْ وَنَعُوذُ بِكَ مِنْ شُرُورِهِمْ", tr: "Allāhumma innā najʿaluka fī nuḥūrihim, wa naʿūdhu bika min shurūrihim.", en: "O Allah, we place You before them and seek refuge in You from their evil.", ha: "Ya Allah, mun sanya Ka a gabansu, kuma muna neman tsarinKa daga sharrinsu.", rep: 1, src: "Abu Dawud", when: { en: "When fearing harm from people", ha: "Lokacin tsoron cutarwa daga mutane" } },
+    pain: { ar: "أَعُوذُ بِاللَّهِ وَقُدْرَتِهِ مِنْ شَرِّ مَا أَجِدُ وَأُحَاذِرُ", tr: "Aʿūdhu billāhi wa qudratihi min sharri mā ajidu wa uḥādhir.", en: "I seek refuge in Allah and His power from the evil of what I feel and fear.", ha: "Ina neman tsarin Allah da ikonsa daga sharrin abin da nake ji da wanda nake tsoro.", rep: 7, src: "Muslim", when: { en: "For pain", ha: "Don ciwo" }, note: { en: "Place your hand on the aching spot, say Bismillah 3 times, then say this 7 times.", ha: "Sa hannunka a wurin da yake ciwo, ka ce Bismillah sau 3, sannan ka faɗi wannan sau 7." } },
+    ruqyah: { ar: "اللَّهُمَّ رَبَّ النَّاسِ أَذْهِبِ الْبَأْسَ اشْفِ أَنْتَ الشَّافِي لَا شِفَاءَ إِلَّا شِفَاؤُكَ شِفَاءً لَا يُغَادِرُ سَقَمًا", tr: "Allāhumma rabban-nās, adhhibil-baʾs, ishfi antash-shāfī, lā shifāʾa illā shifāʾuk, shifāʾan lā yughādiru saqamā.", en: "O Allah, Lord of mankind, remove the harm and heal. You are the Healer. There is no healing except Your healing, a healing that leaves no illness behind.", ha: "Ya Allah, Ubangijin mutane, Ka kawar da cutar, Ka warkar. Kai ne Mai warkarwa, babu waraka sai warakarKa, waraka wadda ba ta barin wata cuta.", rep: 1, src: "Bukhari · Muslim", when: { en: "For a sick person", ha: "Ga mara lafiya" } },
+    istikhara: { ar: "اللَّهُمَّ إِنِّي أَسْتَخِيرُكَ بِعِلْمِكَ وَأَسْتَقْدِرُكَ بِقُدْرَتِكَ وَأَسْأَلُكَ مِنْ فَضْلِكَ الْعَظِيمِ فَإِنَّكَ تَقْدِرُ وَلَا أَقْدِرُ وَتَعْلَمُ وَلَا أَعْلَمُ وَأَنْتَ عَلَّامُ الْغُيُوبِ اللَّهُمَّ إِنْ كُنْتَ تَعْلَمُ أَنَّ هَذَا الْأَمْرَ خَيْرٌ لِي فِي دِينِي وَمَعَاشِي وَعَاقِبَةِ أَمْرِي فَاقْدُرْهُ لِي وَيَسِّرْهُ لِي ثُمَّ بَارِكْ لِي فِيهِ وَإِنْ كُنْتَ تَعْلَمُ أَنَّ هَذَا الْأَمْرَ شَرٌّ لِي فِي دِينِي وَمَعَاشِي وَعَاقِبَةِ أَمْرِي فَاصْرِفْهُ عَنِّي وَاصْرِفْنِي عَنْهُ وَاقْدُرْ لِيَ الْخَيْرَ حَيْثُ كَانَ ثُمَّ أَرْضِنِي بِهِ", tr: "Allāhumma innī astakhīruka biʿilmik, wa astaqdiruka biqudratik, wa asʾaluka min faḍlikal-ʿaẓīm. Fa-innaka taqdiru wa lā aqdir, wa taʿlamu wa lā aʿlam, wa anta ʿallāmul-ghuyūb. Allāhumma in kunta taʿlamu anna hādhal-amra khayrun lī fī dīnī wa maʿāshī wa ʿāqibati amrī, faqdurhu lī wa yassirhu lī thumma bārik lī fīh. Wa in kunta taʿlamu anna hādhal-amra sharrun lī fī dīnī wa maʿāshī wa ʿāqibati amrī, faṣrifhu ʿannī waṣrifnī ʿanh, waqdur liyal-khayra ḥaythu kāna thumma arḍinī bih.", en: "O Allah, I ask You to guide me to the best choice by Your knowledge, I ask for Your power to do it, and I ask for Your great bounty. You are able and I am not; You know and I do not; You are the Knower of the unseen. O Allah, if You know that this matter is good for me in my religion, my livelihood and the outcome of my affairs, then decree it for me, make it easy for me and bless me in it. And if You know that this matter is bad for me in my religion, my livelihood and the outcome of my affairs, then turn it away from me and turn me away from it, and decree what is good for me wherever it is, then make me content with it.", ha: "Ya Allah, ina neman Ka zaɓa mini mafi alheri da iliminKa, ina neman ƙarfi daga ikonKa, kuma ina roƙonKa daga falalarKa mai girma. Lalle Kai kana iyawa, ni ba na iyawa; Kai kana sani, ni ba na sani; Kai ne Masanin abubuwan ɓoye. Ya Allah, idan Kana sanin cewa wannan al'amari alheri ne a gare ni a addinina da rayuwata da ƙarshen al'amarina, to Ka ƙaddara mini shi, Ka sauƙaƙa mini shi, sannan Ka yi mini albarka a cikinsa. Idan kuma Kana sanin cewa wannan al'amari sharri ne a gare ni a addinina da rayuwata da ƙarshen al'amarina, to Ka kawar da shi daga gare ni, Ka kawar da ni daga gare shi, Ka ƙaddara mini alheri duk inda yake, sannan Ka sa ni yarda da shi.", rep: 1, src: "Bukhari", when: { en: "Istikhara: when deciding on a matter", ha: "Istikhara: lokacin yanke shawara" }, note: { en: "Pray two voluntary rakahs, then say this dua and name your matter.", ha: "Yi raka'a biyu na nafila, sannan ka karanta wannan addu'a ka ambaci al'amarinka." } },
+    ishrah: { ar: "رَبِّ اشْرَحْ لِي صَدْرِي وَيَسِّرْ لِي أَمْرِي", tr: "Rabbishraḥ lī ṣadrī, wa yassir lī amrī.", en: "My Lord, expand my chest for me and make my task easy for me.", ha: "Ya Ubangijina, Ka faɗaɗa mini ƙirjina, Ka kuma sauƙaƙa mini al'amarina.", rep: 1, src: "Quran 20:25-26", q: true, when: { en: "When starting a hard task", ha: "Lokacin fara aiki mai wahala" } },
+    wakil: { ar: "حَسْبُنَا اللَّهُ وَنِعْمَ الْوَكِيلُ", tr: "Ḥasbunallāhu wa niʿmal-wakīl.", en: "Allah is enough for us, and He is the best Disposer of affairs.", ha: "Allah Ya isar mana, kuma Shi ne mafi kyawun wakili.", rep: 1, src: "Quran 3:173", q: true, when: { en: "When afraid or under pressure", ha: "Lokacin tsoro ko matsi" } },
+    thabbit: { ar: "يَا مُقَلِّبَ الْقُلُوبِ ثَبِّتْ قَلْبِي عَلَى دِينِكَ", tr: "Yā muqallibal-qulūb, thabbit qalbī ʿalā dīnik.", en: "O Turner of hearts, keep my heart firm on Your religion.", ha: "Ya Mai juya zukata, Ka tabbatar da zuciyata a kan addininKa.", rep: 1, src: "Tirmidhi", when: { en: "For a steadfast heart", ha: "Neman tsayuwar zuciya a kan addini" } },
+    aslih: { ar: "اللَّهُمَّ أَصْلِحْ لِي دِينِيَ الَّذِي هُوَ عِصْمَةُ أَمْرِي وَأَصْلِحْ لِي دُنْيَايَ الَّتِي فِيهَا مَعَاشِي وَأَصْلِحْ لِي آخِرَتِي الَّتِي فِيهَا مَعَادِي وَاجْعَلِ الْحَيَاةَ زِيَادَةً لِي فِي كُلِّ خَيْرٍ وَاجْعَلِ الْمَوْتَ رَاحَةً لِي مِنْ كُلِّ شَرٍّ", tr: "Allāhumma aṣliḥ lī dīnī alladhī huwa ʿiṣmatu amrī, wa aṣliḥ lī dunyāya allatī fīhā maʿāshī, wa aṣliḥ lī ākhirati allatī fīhā maʿādī, wajʿalil-ḥayāta ziyādatan lī fī kulli khayr, wajʿalil-mawta rāḥatan lī min kulli sharr.", en: "O Allah, set right my religion, which is the safeguard of my affairs. Set right my worldly life, in which is my livelihood. Set right my hereafter, to which I will return. Make life an increase for me in all good, and make death a rest for me from all evil.", ha: "Ya Allah, Ka gyara mini addinina wanda shi ne kariyar al'amarina. Ka gyara mini duniyata wadda a cikinta nake nema na rayuwa. Ka gyara mini lahirata wadda zuwa gare ta ne makomata. Ka sa rayuwa ta zama ƙari a gare ni a cikin kowane alheri, Ka sa mutuwa ta zama hutu a gare ni daga kowane sharri.", rep: 1, src: "Muslim", when: { en: "For a good religion, worldly life and hereafter", ha: "Neman gyaran addini, duniya da lahira" } },
+    afiyah: { ar: "اللَّهُمَّ إِنِّي أَسْأَلُكَ الْعَفْوَ وَالْعَافِيَةَ فِي الدُّنْيَا وَالْآخِرَةِ", tr: "Allāhumma innī asʾalukal-ʿafwa wal-ʿāfiyata fid-dunyā wal-ākhirah.", en: "O Allah, I ask You for pardon and well-being in this world and the next.", ha: "Ya Allah, ina roƙonKa afuwa da lafiya a duniya da lahira.", rep: 1, src: "Abu Dawud · Ibn Majah", when: { en: "For well-being and safety", ha: "Neman lafiya da aminci" } },
+    tuzigh: { ar: "رَبَّنَا لَا تُزِغْ قُلُوبَنَا بَعْدَ إِذْ هَدَيْتَنَا وَهَبْ لَنَا مِنْ لَدُنْكَ رَحْمَةً إِنَّكَ أَنْتَ الْوَهَّابُ", tr: "Rabbanā lā tuzigh qulūbanā baʿda idh hadaytanā, wa hab lanā min ladunka raḥmah, innaka antal-wahhāb.", en: "Our Lord, do not let our hearts deviate after You have guided us, and grant us mercy from Yourself. You are the Giver.", ha: "Ya Ubangijinmu, kada Ka karkatar da zukatanmu bayan Ka shiryar da mu, Ka kuma ba mu rahama daga wurinKa. Lalle Kai ne Mai yawan kyauta.", rep: 1, src: "Quran 3:8", q: true, when: { en: "Asking to stay guided", ha: "Neman dawwama a kan shiriya" } },
+    debt: { ar: "اللَّهُمَّ اكْفِنِي بِحَلَالِكَ عَنْ حَرَامِكَ وَأَغْنِنِي بِفَضْلِكَ عَمَّنْ سِوَاكَ", tr: "Allāhummakfinī biḥalālika ʿan ḥarāmik, wa aghninī bifaḍlika ʿamman siwāk.", en: "O Allah, let what You have made lawful be enough for me instead of what You have forbidden, and make me independent of everyone but You through Your bounty.", ha: "Ya Allah, Ka wadatar da ni da halalinKa daga haramtaKa, Ka kuma wadatar da ni da falalarKa daga waninKa.", rep: 1, src: "Tirmidhi", when: { en: "For provision and relief from debt", ha: "Neman arziki da kuɓuta daga bashi" } },
+    faqir: { ar: "رَبِّ إِنِّي لِمَا أَنْزَلْتَ إِلَيَّ مِنْ خَيْرٍ فَقِيرٌ", tr: "Rabbi innī limā anzalta ilayya min khayrin faqīr.", en: "My Lord, I am in need of whatever good You send down to me.", ha: "Ya Ubangijina, lalle ni mai buƙata ne ga duk wani alheri da Ka saukar mini.", rep: 1, src: "Quran 28:24", q: true, when: { en: "When in need", ha: "Lokacin buƙata" } },
+    condol: { ar: "إِنَّ لِلَّهِ مَا أَخَذَ وَلَهُ مَا أَعْطَى وَكُلُّ شَيْءٍ عِنْدَهُ بِأَجَلٍ مُسَمًّى", tr: "Inna lillāhi mā akhadh, wa lahu mā aʿṭā, wa kullu shayʾin ʿindahu bi-ajalin musammā.", en: "To Allah belongs what He took and what He gave, and everything with Him has an appointed time.", ha: "Lalle na Allah ne abin da Ya ɗauka, kuma nasa ne abin da Ya bayar, kuma kowane abu a wurinsa yana da lokaci ƙayyadadde.", rep: 1, src: "Bukhari · Muslim", when: { en: "Comforting the bereaved", ha: "Yi wa wanda ya yi rashi ta'aziyya" } },
+    janaza: { ar: "اللَّهُمَّ اغْفِرْ لِحَيِّنَا وَمَيِّتِنَا وَشَاهِدِنَا وَغَائِبِنَا وَصَغِيرِنَا وَكَبِيرِنَا وَذَكَرِنَا وَأُنْثَانَا اللَّهُمَّ مَنْ أَحْيَيْتَهُ مِنَّا فَأَحْيِهِ عَلَى الْإِسْلَامِ وَمَنْ تَوَفَّيْتَهُ مِنَّا فَتَوَفَّهُ عَلَى الْإِيمَانِ", tr: "Allāhummaghfir liḥayyinā wa mayyitinā, wa shāhidinā wa ghāʾibinā, wa ṣaghīrinā wa kabīrinā, wa dhakarinā wa unthānā. Allāhumma man aḥyaytahu minnā faʾaḥyihi ʿalal-islām, wa man tawaffaytahu minnā fatawaffahu ʿalal-īmān.", en: "O Allah, forgive our living and our dead, those present and those absent, our young and our old, our males and our females. O Allah, whoever You keep alive among us, keep him alive upon Islam, and whoever You cause to die among us, let him die upon faith.", ha: "Ya Allah, Ka gafarta wa rayayyunmu da matattunmu, da waɗanda suke nan da waɗanda ba sa nan, da ƙananmu da manyanmu, da mazajenmu da matanmu. Ya Allah, wanda Ka rayar daga cikinmu, Ka rayar da shi a kan Musulunci, wanda kuma Ka karɓi ransa daga cikinmu, Ka karɓi ransa a kan imani.", rep: 1, src: "Abu Dawud · Tirmidhi", when: { en: "In the funeral prayer (Janazah)", ha: "A sallar jana'iza" } },
+    graves: { ar: "السَّلَامُ عَلَيْكُمْ أَهْلَ الدِّيَارِ مِنَ الْمُؤْمِنِينَ وَالْمُسْلِمِينَ وَإِنَّا إِنْ شَاءَ اللَّهُ بِكُمْ لَاحِقُونَ نَسْأَلُ اللَّهَ لَنَا وَلَكُمُ الْعَافِيَةَ", tr: "As-salāmu ʿalaykum ahlad-diyāri minal-muʾminīna wal-muslimīn, wa innā in shāʾallāhu bikum lāḥiqūn, nasʾalullāha lanā wa lakumul-ʿāfiyah.", en: "Peace be upon you, people of these homes, believers and Muslims. We will join you, if Allah wills. We ask Allah for well-being for us and for you.", ha: "Aminci ya tabbata a gare ku, ku mutanen wannan gida, muminai da Musulmai. Mu ma masu riskarku ne, in Allah Ya so. Muna roƙon Allah lafiya a gare mu da ku.", rep: 1, src: "Muslim", when: { en: "When visiting graves", ha: "Lokacin ziyarar makabarta" } },
+    trialsee: { ar: "الْحَمْدُ لِلَّهِ الَّذِي عَافَانِي مِمَّا ابْتَلَاكَ بِهِ وَفَضَّلَنِي عَلَى كَثِيرٍ مِمَّنْ خَلَقَ تَفْضِيلًا", tr: "Alḥamdu lillāhil-ladhī ʿāfānī mimmabtalāka bih, wa faḍḍalanī ʿalā kathīrin mimman khalaqa tafḍīlā.", en: "Praise be to Allah who spared me from what He tested you with, and favored me over many of those He created.", ha: "Godiya ta tabbata ga Allah wanda Ya kare ni daga abin da Ya jarabce ka da shi, Ya kuma fifita ni a kan mutane masu yawa daga waɗanda Ya halitta.", rep: 1, src: "Tirmidhi", when: { en: "When seeing someone in a trial", ha: "Lokacin ganin wanda aka jarabta" }, note: { en: "Say it quietly, so the person does not hear.", ha: "Ka faɗa a ɓoye, kada mutumin ya ji." } },
+    qini: { ar: "اللَّهُمَّ قِنِي عَذَابَكَ يَوْمَ تَبْعَثُ عِبَادَكَ", tr: "Allāhumma qinī ʿadhābaka yawma tabʿathu ʿibādak.", en: "O Allah, protect me from Your punishment on the day You raise Your servants.", ha: "Ya Allah, Ka tsare ni daga azabarKa a ranar da Za Ka tashe bayinKa.", rep: 3, src: "Abu Dawud · Tirmidhi", when: { en: "Before sleeping", ha: "Kafin barci" }, note: { en: "Place your right hand under your cheek.", ha: "Sa hannunka na dama a ƙarƙashin kumatunka." } },
+    safar2: { ar: "اللَّهُمَّ إِنَّا نَسْأَلُكَ فِي سَفَرِنَا هَذَا الْبِرَّ وَالتَّقْوَى وَمِنَ الْعَمَلِ مَا تَرْضَى اللَّهُمَّ هَوِّنْ عَلَيْنَا سَفَرَنَا هَذَا وَاطْوِ عَنَّا بُعْدَهُ", tr: "Allāhumma innā nasʾaluka fī safarinā hādhal-birra wat-taqwā, wa minal-ʿamali mā tarḍā. Allāhumma hawwin ʿalaynā safaranā hādhā waṭwi ʿannā buʿdah.", en: "O Allah, we ask You on this journey for goodness and piety, and for deeds that please You. O Allah, make this journey easy for us and shorten its distance for us.", ha: "Ya Allah, muna roƙonKa a wannan tafiya tamu alheri da taƙawa, da ayyukan da Kake yarda da su. Ya Allah, Ka sauƙaƙa mana wannan tafiya tamu, Ka kuma naɗe mana nisansa.", rep: 1, src: "Muslim", when: { en: "During a journey, after the travel dua", ha: "A lokacin tafiya, bayan addu'ar hawa" } },
+    returntrip: { ar: "آيِبُونَ تَائِبُونَ عَابِدُونَ لِرَبِّنَا حَامِدُونَ", tr: "Āyibūna tāʾibūna ʿābidūna lirabbinā ḥāmidūn.", en: "We return, repenting, worshipping and praising our Lord.", ha: "Mu masu komowa ne, masu tuba, masu bauta, masu godiya ga Ubangijinmu.", rep: 1, src: "Muslim", when: { en: "When returning from a journey", ha: "Lokacin dawowa daga tafiya" } },
+    hilal: { ar: "اللَّهُمَّ أَهِلَّهُ عَلَيْنَا بِالْأَمْنِ وَالْإِيمَانِ وَالسَّلَامَةِ وَالْإِسْلَامِ رَبِّي وَرَبُّكَ اللَّهُ", tr: "Allāhumma ahillahu ʿalaynā bil-amni wal-īmān, was-salāmati wal-islām, rabbī wa rabbukallāh.", en: "O Allah, bring this moon over us with security and faith, with safety and Islam. My Lord and your Lord is Allah.", ha: "Ya Allah, Ka bayyana mana wannan wata da aminci da imani, da lafiya da Musulunci. Ubangijina kuma Ubangijinka Allah ne.", rep: 1, src: "Tirmidhi", when: { en: "When seeing the new moon", ha: "Lokacin ganin sabon wata" } },
+    takbir: { ar: "اللَّهُ أَكْبَرُ اللَّهُ أَكْبَرُ لَا إِلَهَ إِلَّا اللَّهُ وَاللَّهُ أَكْبَرُ اللَّهُ أَكْبَرُ وَلِلَّهِ الْحَمْدُ", tr: "Allāhu akbar, Allāhu akbar, lā ilāha illallāh, wallāhu akbar, Allāhu akbar, wa lillāhil-ḥamd.", en: "Allah is the Greatest, Allah is the Greatest. There is no god but Allah. Allah is the Greatest, Allah is the Greatest, and all praise is for Allah.", ha: "Allah ne Mafi girma, Allah ne Mafi girma. Babu abin bautawa sai Allah. Allah ne Mafi girma, Allah ne Mafi girma, kuma godiya ta Allah ce.", rep: 1, src: "Ibn Abi Shaybah", when: { en: "Takbir of Eid", ha: "Kabbarar ranar Idi" } },
+    talbiyah: { ar: "لَبَّيْكَ اللَّهُمَّ لَبَّيْكَ لَبَّيْكَ لَا شَرِيكَ لَكَ لَبَّيْكَ إِنَّ الْحَمْدَ وَالنِّعْمَةَ لَكَ وَالْمُلْكَ لَا شَرِيكَ لَكَ", tr: "Labbaykallāhumma labbayk, labbayka lā sharīka laka labbayk, innal-ḥamda wan-niʿmata laka wal-mulk, lā sharīka lak.", en: "Here I am, O Allah, here I am. Here I am, You have no partner, here I am. All praise and favor belong to You, and all dominion. You have no partner.", ha: "Ga ni, ya Allah, ga ni. Ga ni, ba Ka da abokin tarayya, ga ni. Lalle godiya da ni'ima taKa ce, da mulki. Ba Ka da abokin tarayya.", rep: 1, src: "Bukhari · Muslim", when: { en: "Talbiyah for Hajj and Umrah", ha: "Talbiyya ta Hajji da Umra" } },
+    mutirna: { ar: "مُطِرْنَا بِفَضْلِ اللَّهِ وَرَحْمَتِهِ", tr: "Muṭirnā bifaḍlillāhi wa raḥmatih.", en: "We have been given rain by the bounty and mercy of Allah.", ha: "An yi mana ruwa da falalar Allah da rahamarsa.", rep: 1, src: "Bukhari · Muslim", when: { en: "After the rain", ha: "Bayan an yi ruwa" } },
+    mirror: { ar: "اللَّهُمَّ أَنْتَ حَسَّنْتَ خَلْقِي فَحَسِّنْ خُلُقِي", tr: "Allāhumma anta ḥassanta khalqī faḥassin khuluqī.", en: "O Allah, You made my appearance good, so make my character good.", ha: "Ya Allah, Ka kyautata halittata, don haka Ka kyautata halayena.", rep: 1, src: "Ahmad", when: { en: "When looking in the mirror", ha: "Lokacin kallon madubi" } },
+    mashaallah: { ar: "مَا شَاءَ اللَّهُ لَا قُوَّةَ إِلَّا بِاللَّهِ", tr: "Mā shāʾallāh, lā quwwata illā billāh.", en: "What Allah wills. There is no power except with Allah.", ha: "Abin da Allah Ya so shi ne. Babu ƙarfi sai da Allah.", rep: 1, src: "Quran 18:39", q: true, when: { en: "When you see something that pleases you", ha: "Lokacin ganin abin da ya burge ka" } },
+    kaffara: { ar: "سُبْحَانَكَ اللَّهُمَّ وَبِحَمْدِكَ أَشْهَدُ أَنْ لَا إِلَهَ إِلَّا أَنْتَ أَسْتَغْفِرُكَ وَأَتُوبُ إِلَيْكَ", tr: "Subḥānakallāhumma wa biḥamdik, ash-hadu an lā ilāha illā anta, astaghfiruka wa atūbu ilayk.", en: "Glory be to You, O Allah, and praise be to You. I bear witness that there is no god but You. I seek Your forgiveness and turn to You in repentance.", ha: "Tsarki ya tabbata gare Ka, ya Allah, kuma godiya taKa ce. Ina shaida cewa babu abin bautawa sai Kai. Ina neman gafararKa, kuma ina tuba zuwa gare Ka.", rep: 1, src: "Abu Dawud · Tirmidhi · Nasai", when: { en: "At the end of a gathering", ha: "A ƙarshen taro ko zama" } },
+    taqabbal: { ar: "رَبَّنَا تَقَبَّلْ مِنَّا إِنَّكَ أَنْتَ السَّمِيعُ الْعَلِيمُ", tr: "Rabbanā taqabbal minnā, innaka antas-samīʿul-ʿalīm.", en: "Our Lord, accept this from us. You are the All-Hearing, the All-Knowing.", ha: "Ya Ubangijinmu, Ka karɓa daga gare mu. Lalle Kai ne Mai ji, Masani.", rep: 1, src: "Quran 2:127", q: true, when: { en: "After doing a good deed", ha: "Bayan yin aiki na alheri" } },
+    azwaj: { ar: "رَبَّنَا هَبْ لَنَا مِنْ أَزْوَاجِنَا وَذُرِّيَّاتِنَا قُرَّةَ أَعْيُنٍ وَاجْعَلْنَا لِلْمُتَّقِينَ إِمَامًا", tr: "Rabbanā hab lanā min azwājinā wa dhurriyyātinā qurrata aʿyun, wajʿalnā lil-muttaqīna imāmā.", en: "Our Lord, grant us joy in our spouses and children, and make us leaders for the righteous.", ha: "Ya Ubangijinmu, Ka ba mu daga matanmu da zuriyarmu abin da zai faranta mana ido, Ka kuma sa mu shugabanni ga masu taƙawa.", rep: 1, src: "Quran 25:74", q: true, when: { en: "A dua for spouse and children", ha: "Addu'a ga ma'aurata da 'ya'ya" } },
+    muqim: { ar: "رَبِّ اجْعَلْنِي مُقِيمَ الصَّلَاةِ وَمِنْ ذُرِّيَّتِي رَبَّنَا وَتَقَبَّلْ دُعَاءِ", tr: "Rabbijʿalnī muqīmaṣ-ṣalāti wa min dhurriyyatī, rabbanā wa taqabbal duʿāʾ.", en: "My Lord, make me an establisher of prayer, and my descendants too. Our Lord, accept my prayer.", ha: "Ya Ubangijina, Ka sa ni mai tsayar da sallah, da kuma zuriyata. Ya Ubangijinmu, Ka karɓi addu'ata.", rep: 1, src: "Quran 14:40", q: true, when: { en: "Asking to keep up the prayer", ha: "Neman dagewa a kan sallah" } },
+    sami: { ar: 'سَمِعَ اللَّهُ لِمَنْ حَمِدَهُ', tr: 'Samiʿallāhu liman ḥamidah.', en: 'Allah hears the one who praises Him.', ha: 'Allah Yana jin wanda ya yabe Shi.', rep: 1, src: 'Bukhari', when: { en: 'When rising from bowing', ha: 'Lokacin tashi daga rukuʼu' } },
+    rabbanalak: { ar: 'رَبَّنَا وَلَكَ الْحَمْدُ', tr: 'Rabbanā wa lakal-ḥamd.', en: 'Our Lord, and all praise is Yours.', ha: 'Ya Ubangijinmu, godiya ta tabbata gare Ka.', rep: 1, src: 'Bukhari', when: { en: 'After standing up straight from bowing', ha: 'Bayan an miƙe tsaye daga rukuʼu' } },
+    hayy: { ar: 'يَا حَيُّ يَا قَيُّومُ بِرَحْمَتِكَ أَسْتَغِيثُ أَصْلِحْ لِي شَأْنِي كُلَّهُ وَلَا تَكِلْنِي إِلَى نَفْسِي طَرْفَةَ عَيْنٍ', tr: 'Yā Ḥayyu yā Qayyūm, biraḥmatika astaghīth, aṣliḥ lī shaʾnī kullahu wa lā takilnī ilā nafsī ṭarfata ʿayn.', en: 'O Ever-Living, O Sustainer, in Your mercy I seek help. Set right all my affairs and do not leave me to myself even for the blink of an eye.', ha: 'Ya Rayayye, ya Tsayayye da kansa, ina neman taimako da rahamarKa. Ka gyara mini dukkan al\'amarina, kada Ka bar ni da kaina ko da ƙiftawar ido.', rep: 1, src: 'Hakim', when: { en: 'Morning and evening, asking Allah to set your affairs right', ha: 'Safe da maraice, neman Allah Ya gyara al\'amura' } },
+    bikasb: { ar: 'اللَّهُمَّ بِكَ أَصْبَحْنَا وَبِكَ أَمْسَيْنَا وَبِكَ نَحْيَا وَبِكَ نَمُوتُ وَإِلَيْكَ النُّشُورُ', tr: 'Allāhumma bika aṣbaḥnā, wa bika amsaynā, wa bika naḥyā, wa bika namūt, wa ilaykan-nushūr.', en: 'O Allah, by You we enter the morning, by You we enter the evening, by You we live and by You we die, and to You is the resurrection.', ha: 'Ya Allah, da Kai muka shiga safiya, da Kai muka shiga maraice, da Kai muke rayuwa, da Kai muke mutuwa, kuma zuwa gare Ka ne tashin matattu.', rep: 1, src: 'Tirmidhi', when: { en: 'Morning', ha: 'Safe' } },
+    bikams: { ar: 'اللَّهُمَّ بِكَ أَمْسَيْنَا وَبِكَ أَصْبَحْنَا وَبِكَ نَحْيَا وَبِكَ نَمُوتُ وَإِلَيْكَ الْمَصِيرُ', tr: 'Allāhumma bika amsaynā, wa bika aṣbaḥnā, wa bika naḥyā, wa bika namūt, wa ilaykal-maṣīr.', en: 'O Allah, by You we enter the evening, by You we enter the morning, by You we live and by You we die, and to You is the final return.', ha: 'Ya Allah, da Kai muka shiga maraice, da Kai muka shiga safiya, da Kai muke rayuwa, da Kai muke mutuwa, kuma zuwa gare Ka ne makoma.', rep: 1, src: 'Tirmidhi', when: { en: 'Evening', ha: 'Maraice' } },
+    fatiha: { ar: 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ الرَّحْمَٰنِ الرَّحِيمِ مَالِكِ يَوْمِ الدِّينِ إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ اهْدِنَا الصِّرَاطَ الْمُسْتَقِيمَ صِرَاطَ الَّذِينَ أَنْعَمْتَ عَلَيْهِمْ غَيْرِ الْمَغْضُوبِ عَلَيْهِمْ وَلَا الضَّالِّينَ', tr: 'Bismillāhir-raḥmānir-raḥīm. Alḥamdu lillāhi rabbil-ʿālamīn. Ar-raḥmānir-raḥīm. Māliki yawmid-dīn. Iyyāka naʿbudu wa iyyāka nastaʿīn. Ihdinaṣ-ṣirāṭal-mustaqīm. Ṣirāṭal-ladhīna anʿamta ʿalayhim, ghayril-maghḍūbi ʿalayhim wa laḍ-ḍāllīn.', en: 'In the name of Allah, the Most Gracious, the Most Merciful. All praise is for Allah, Lord of all the worlds. The Most Gracious, the Most Merciful. Master of the Day of Judgment. You alone we worship, and You alone we ask for help. Guide us to the straight path, the path of those You have blessed, not of those who earned anger, nor of those who went astray.', ha: 'Da sunan Allah, Mai rahama, Mai jinƙai. Godiya ta tabbata ga Allah, Ubangijin talikai. Mai rahama, Mai jinƙai. Mamallakin ranar sakamako. Kai kaɗai muke bauta wa, kuma Kai kaɗai muke neman taimako daga gare Ka. Ka shiryar da mu hanya madaidaiciya. Hanyar waɗanda Ka ni\'imta musu, ba waɗanda aka yi fushi da su ba, kuma ba ɓatattu ba.', rep: 1, src: 'Quran 1', q: true, when: { en: 'Opening of the Quran, recited in every rakah', ha: 'Fatiha, ana karanta ta a kowace rakaʼa' } },
+    karb: { ar: 'لَا إِلَهَ إِلَّا اللَّهُ الْعَظِيمُ الْحَلِيمُ لَا إِلَهَ إِلَّا اللَّهُ رَبُّ الْعَرْشِ الْعَظِيمِ لَا إِلَهَ إِلَّا اللَّهُ رَبُّ السَّمَاوَاتِ وَرَبُّ الْأَرْضِ وَرَبُّ الْعَرْشِ الْكَرِيمِ', tr: 'Lā ilāha illallāhul-ʿaẓīmul-ḥalīm, lā ilāha illallāhu rabbul-ʿarshil-ʿaẓīm, lā ilāha illallāhu rabbus-samāwāti wa rabbul-arḍi wa rabbul-ʿarshil-karīm.', en: 'There is no god but Allah, the Almighty, the Forbearing. There is no god but Allah, Lord of the Mighty Throne. There is no god but Allah, Lord of the heavens, Lord of the earth and Lord of the Noble Throne.', ha: 'Babu abin bautawa sai Allah Mai girma, Mai haƙuri. Babu abin bautawa sai Allah Ubangijin Al\'arshi mai girma. Babu abin bautawa sai Allah Ubangijin sammai da Ubangijin ƙasa da Ubangijin Al\'arshi mai karimci.', rep: 1, src: 'Bukhari · Muslim', when: { en: 'In times of distress', ha: 'Lokacin matsananciyar damuwa' } },
+    eid: { ar: 'تَقَبَّلَ اللَّهُ مِنَّا وَمِنْكُمْ', tr: 'Taqabbalallāhu minnā wa minkum.', en: 'May Allah accept it from us and from you.', ha: 'Allah Ya karɓa daga gare mu da ku.', rep: 1, src: 'Reported from the Companions', when: { en: 'Greeting on Eid', ha: 'Gaisuwar Sallah (Idi)' } },
+    janaza2: { ar: 'اللَّهُمَّ اغْفِرْ لَهُ وَارْحَمْهُ وَعَافِهِ وَاعْفُ عَنْهُ', tr: 'Allāhumma-ghfir lahu warḥamhu wa ʿāfihi waʿfu ʿanh.', en: 'O Allah, forgive him, have mercy on him, grant him well-being and pardon him.', ha: 'Ya Allah, Ka gafarta masa, Ka yi masa rahama, Ka ba shi lafiya, Ka yi masa afuwa.', rep: 1, src: 'Muslim', when: { en: 'In the funeral prayer, for the deceased', ha: 'A sallar janaʼiza, ga mamaci' } }
+  };
+  var CATS = [
+    { id: 'daily', en: 'Morning & evening', ha: 'Safiya da maraice', ar: 'أَذْكَارُ الصَّبَاحِ وَالْمَسَاءِ', items: ['hasbi', 'kalimat', 'bihamdihi', 'sayyid', 'asbahna', 'amsayna', 'bikasb', 'bikams', 'radhitu', 'bismillahilladhi', 'hayy'] },
+    { id: 'quran', en: 'Quran adhkar', ha: "Zikirin Alƙur'ani", ar: 'أَذْكَارٌ مِنَ الْقُرْآنِ', items: ['fatiha', 'kursi', 'ikhlas', 'falaq', 'nas', 'baq285', 'baq286'] },
+    { id: 'sleep', en: 'Waking & sleeping', ha: 'Tashi da kwanciya', ar: 'النَّوْمُ وَالِاسْتِيقَاظُ', items: ['sleeping', 'qini', 'waking'] },
+    { id: 'food', en: 'Food', ha: 'Abinci', ar: 'الطَّعَامُ', items: ['eat1', 'eat2', 'host'] },
+    { id: 'inprayer', en: 'In the prayer', ha: 'A cikin sallah', ar: 'فِي الصَّلَاةِ', items: ['istiftah', 'ruku', 'sami', 'rabbanalak', 'sujud', 'jalsa', 'tashahhud', 'beforesalam'] },
+    { id: 'salah', en: 'After prayer', ha: 'Bayan sallah', ar: 'بَعْدَ الصَّلَاةِ', items: ['istighfar', 'salam', 'a3inni'] },
+    { id: 'prayer', en: 'Wudu, adhan & mosque', ha: 'Alwala, kiran sallah da masallaci', ar: 'الْوُضُوءُ وَالْأَذَانُ وَالْمَسْجِدُ', items: ['wudu', 'adhan', 'mosque1', 'mosque2'] },
+    { id: 'out', en: 'Going out & travel', ha: 'Fita da tafiya', ar: 'الْخُرُوجُ وَالسَّفَرُ', items: ['leave', 'travel', 'safar2', 'returntrip'] },
+    { id: 'home', en: 'Home & daily life', ha: 'Gida da rayuwar yau da kullum', ar: 'الْبَيْتُ وَالْحَيَاةُ الْيَوْمِيَّةُ', items: ['enter', 'cloth', 'mirror', 'toilet', 'ghufran', 'rain', 'mutirna', 'mashaallah'] },
+    { id: 'protect', en: 'Protection', ha: 'Kariya', ar: 'الْحِفْظُ وَالتَّحْصِينُ', items: ['angry', 'children', 'fearpeople', 'wakil'] },
+    { id: 'decide', en: 'Decisions & ease', ha: 'Shawara da sauƙi', ar: 'الِاسْتِخَارَةُ وَالتَّيْسِيرُ', items: ['istikhara', 'ishrah', 'thabbit', 'tuzigh', 'aslih', 'afiyah'] },
+    { id: 'hard', en: 'In hardship', ha: 'Lokacin wahala', ar: 'عِنْدَ الْكَرْبِ', items: ['yunus', 'karb', 'worry', 'debt', 'faqir', 'istirja', 'ajurni'] },
+    { id: 'illness', en: 'Illness & loss', ha: 'Rashin lafiya da rashi', ar: 'الْمَرَضُ وَالْوَفَاةُ', items: ['sick', 'ruqyah', 'pain', 'trialsee', 'condol', 'janaza2', 'janaza', 'graves'] },
+    { id: 'learn', en: 'Knowledge & family', ha: 'Ilimi da iyali', ar: 'الْعِلْمُ وَالْأُسْرَةُ', items: ['zidni', 'parents', 'azwaj', 'muqim', 'rabbana'] },
+    { id: 'forgive', en: 'Forgiveness & acceptance', ha: 'Gafara da karɓar ayyuka', ar: 'الْمَغْفِرَةُ وَالْقَبُولُ', items: ['rabbighfir', 'zalamna', 'huda', 'taqabbal'] },
+    { id: 'dhikr', en: 'Words of remembrance', ha: 'Kalmomin zikiri', ar: 'كَلِمَاتُ الذِّكْرِ', items: ['kalimatan', 'hawqala', 'tahlil'] },
+    { id: 'salawat', en: 'Blessings on the Prophet', ha: 'Salati ga Annabi', ar: 'الصَّلَاةُ عَلَى النَّبِيِّ', items: ['salawat'] },
+    { id: 'manners', en: 'Greetings & manners', ha: "Gaisuwa da ɗabi'a", ar: 'السَّلَامُ وَالْآدَابُ', items: ['greet', 'reply', 'jazak', 'hamd', 'yarhamuk', 'yahdikum', 'newlywed', 'kaffara'] },
+    { id: 'fast', en: 'Fasting', ha: 'Azumi', ar: 'الصِّيَامُ', items: ['breakfast', 'qadr'] },
+    { id: 'occasions', en: 'Special occasions', ha: 'Lokuta na musamman', ar: 'الْمُنَاسَبَاتُ', items: ['hilal', 'takbir', 'eid', 'talbiyah'] }
+  ];
+  var TAS = [
+    { ar: 'سُبْحَانَ اللَّهِ', tr: 'Subḥānallāh', en: 'Glory be to Allah', ha: 'Tsarki ya tabbata ga Allah', short: 'SubhanAllah' },
+    { ar: 'الْحَمْدُ لِلَّهِ', tr: 'Alḥamdulillāh', en: 'All praise is for Allah', ha: 'Godiya ta tabbata ga Allah', short: 'Alhamdulillah' },
+    { ar: 'اللَّهُ أَكْبَرُ', tr: 'Allāhu akbar', en: 'Allah is the Greatest', ha: 'Allah ne Mafi girma', short: 'Allahu Akbar' }
+  ];
+  var WHEN = {
+    hasbi: ['Morning and evening', 'Safe da maraice'],
+    kalimat: ['In the evening, for protection', 'Da maraice, don kariya'],
+    bihamdihi: ['Morning and evening', 'Safe da maraice'],
+    waking: ['When waking up', 'Lokacin farkawa daga barci'],
+    sleeping: ['When going to sleep', 'Lokacin kwanciya barci'],
+    eat1: ['Before eating', 'Kafin cin abinci'],
+    eat2: ['After eating', 'Bayan cin abinci'],
+    leave: ['When leaving the home', 'Lokacin fita daga gida'],
+    travel: ['When boarding a vehicle or starting a journey', 'Lokacin hawa abin hawa ko fara tafiya'],
+    istighfar: ['After each prayer', 'Bayan kowace sallah'],
+    salam: ['After the prayer ends', 'Bayan an yi sallama a sallah'],
+    yunus: ['In times of distress', 'Lokacin damuwa'],
+    worry: ['For worry, sadness and debt', 'Don damuwa, baƙin ciki da bashi'],
+    zidni: ['Asking for more knowledge', 'Neman ƙarin ilimi'],
+    parents: ['A dua for parents', "Addu'a ga iyaye"],
+    rabbana: ['For good in this life and the next', 'Neman alheri a duniya da lahira'],
+    tahlil: ['Declaring Allah is One', 'Ambaton kaɗaita Allah'],
+    kalimatan: ['Light on the tongue, heavy on the scale', "Masu sauƙi a baki, masu nauyi a ma'auni"],
+    hawqala: ['A treasure of Paradise', 'Dukiya daga dukiyoyin Aljanna'],
+    rabbighfir: ['Asking forgiveness and repentance', 'Neman gafara da tuba'],
+    zalamna: ["The dua of Adam and Hawwa", "Addu'ar Adamu da Hauwa'u"],
+    huda: ['Asking for guidance and self-sufficiency', 'Neman shiriya da wadatar zuci']
+  };
+  Object.keys(D).forEach(function (k) { D[k].id = k; if (!D[k].when && WHEN[k]) D[k].when = { en: WHEN[k][0], ha: WHEN[k][1] }; });
+  CATS.forEach(function (c, i) { c.i = i; c.items.forEach(function (id) { if (D[id] && D[id].ci == null) D[id].ci = i; }); });
+
+  /* ---------- state ---------- */
+  var S = {
+    lang: store.get('lang', 'both'),
+    size: store.get('size', 1),
+    favs: store.get('favs', []),
+    tas: store.get('tas', { i: 0, target: 33, count: 0, rounds: 0 }),
+    pr: store.get('pr', { city: 'Kano', method: 'mwl', hanafi: false, lat: 12.0022, lng: 8.592 }),
+    today: store.get('today', null),
+    rem: store.get('rem', null),
+    timer: null, q: '', view: 'home', cat: null, counts: {}
+  };
+  var SIZES = [26, 32, 40];
+  if (SIZES[S.size] == null) S.size = 1;
+
+  function T(en, ha) { return S.lang === 'ha' ? ha : en; }
+  function applySize() { document.documentElement.style.setProperty('--ar', SIZES[S.size] + 'px'); }
+  var toastTimer;
+  function toast(m) { var t = $('#toast'); t.textContent = m; t.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(function () { t.hidden = true; }, 1800); }
+  function vib(p) { try { if (navigator.vibrate) navigator.vibrate(p); } catch (e) {} }
+  function byId(id) { return CATS.filter(function (c) { return c.id === id; })[0]; }
+  function col(i) { return 'var(--c' + ((i % 8) + 1) + ')'; }
+  function norm(s) { return String(s).toLowerCase().normalize('NFD').replace(/[̀-ًͯ-ٰٟۖ-ۭʿʾ]/g, '').replace(/ɓ/g, 'b').replace(/ɗ/g, 'd').replace(/ƙ/g, 'k').replace(/ƴ/g, 'y').replace(/['’‘`\-]/g, ''); }
+  function hay(d) { if (!d._h) d._h = norm([d.ar, d.tr || '', d.en, d.ha, d.when ? d.when.en + ' ' + d.when.ha : '', d.note ? d.note.en + ' ' + d.note.ha : '', d.src].join(' ')); return d._h; }
+
+  /* ---------- prayer data and calculation ---------- */
+  var CITIES = [['Kano', 12.0022, 8.592], ['Kaduna', 10.5105, 7.4165], ['Sokoto', 13.0059, 5.2476], ['Maiduguri', 11.8333, 13.15], ['Abuja', 9.0765, 7.3986], ['Katsina', 12.9908, 7.6018], ['Bauchi', 10.3158, 9.8442], ['Gombe', 10.2897, 11.1673], ['Zaria', 11.0855, 7.7199], ['Jos', 9.8965, 8.8583], ['Minna', 9.6139, 6.5569], ['Ilorin', 8.4966, 4.5421], ['Yola', 9.2035, 12.4954], ['Dutse', 11.7561, 9.3389], ['Birnin Kebbi', 12.4539, 4.1975], ['Gusau', 12.1704, 6.664], ['Lagos', 6.5244, 3.3792], ['Ibadan', 7.3775, 3.947], ['Port Harcourt', 4.8156, 7.0498]];
+  var ST = { Kano: 'Kano', Kaduna: 'Kaduna', Sokoto: 'Sokoto', Maiduguri: 'Borno', Abuja: 'FCT', Katsina: 'Katsina', Bauchi: 'Bauchi', Gombe: 'Gombe', Zaria: 'Kaduna', Jos: 'Plateau', Minna: 'Niger', Ilorin: 'Kwara', Yola: 'Adamawa', Dutse: 'Jigawa', 'Birnin Kebbi': 'Kebbi', Gusau: 'Zamfara', Lagos: 'Lagos', Ibadan: 'Oyo', 'Port Harcourt': 'Rivers' };
+  CITIES = CITIES.concat([
+    ['Jega', 12.2167, 4.3833, 'Kebbi'], ['Argungu', 12.745, 4.525, 'Kebbi'], ['Hadejia', 12.45, 10.04, 'Jigawa'], ['Azare', 11.677, 10.19, 'Bauchi'], ['Kontagora', 10.4, 5.47, 'Niger'], ['Bida', 9.0842, 6.0083, 'Niger'], ['Suleja', 9.18, 7.18, 'Niger'], ['Funtua', 11.524, 7.315, 'Katsina'], ['Daura', 13.033, 8.32, 'Katsina'], ['Potiskum', 11.71, 11.08, 'Yobe'], ['Gashua', 12.87, 11.05, 'Yobe'], ['Nguru', 12.878, 10.45, 'Yobe'],
+    ['Umuahia', 5.525, 7.4906, 'Abia'], ['Uyo', 5.0377, 7.9128, 'Akwa Ibom'], ['Awka', 6.2104, 7.0719, 'Anambra'], ['Yenagoa', 4.9267, 6.2676, 'Bayelsa'], ['Makurdi', 7.7337, 8.5214, 'Benue'], ['Calabar', 4.9757, 8.3417, 'Cross River'], ['Asaba', 6.198, 6.734, 'Delta'], ['Abakaliki', 6.3249, 8.1137, 'Ebonyi'], ['Benin City', 6.335, 5.6037, 'Edo'], ['Ado-Ekiti', 7.6211, 5.2214, 'Ekiti'], ['Enugu', 6.4584, 7.5464, 'Enugu'], ['Owerri', 5.485, 7.035, 'Imo'], ['Lokoja', 7.8023, 6.7333, 'Kogi'], ['Lafia', 8.4939, 8.5153, 'Nasarawa'], ['Abeokuta', 7.1475, 3.3619, 'Ogun'], ['Akure', 7.2526, 5.1931, 'Ondo'], ['Osogbo', 7.7827, 4.5418, 'Osun'], ['Jalingo', 8.8937, 11.3596, 'Taraba'], ['Damaturu', 11.747, 11.9608, 'Yobe']
+  ]);
+  CITIES.forEach(function (c) { if (!c[3]) c[3] = ST[c[0]]; });
+  CITIES.sort(function (a, b) { return a[0] < b[0] ? -1 : 1; });
+  function cname(c) { return c[3] === c[0] ? c[0] : c[0] + ', ' + c[3]; }
+  var METHODS = { mwl: ['Muslim World League', 18, 17], egypt: ['Egyptian General Authority', 19.5, 17.5], karachi: ['Univ. of Islamic Sciences, Karachi', 18, 18] };
+  var PN = [['fajr', 'Fajr', 'Asuba', 'الْفَجْرُ'], ['sunrise', 'Sunrise', 'Fitowar rana', 'الشُّرُوقُ'], ['dhuhr', 'Dhuhr', 'Azahar', 'الظُّهْرُ'], ['asr', 'Asr', "La'asar", 'الْعَصْرُ'], ['maghrib', 'Maghrib', 'Magariba', 'الْمَغْرِبُ'], ['isha', 'Isha', "Isha'i", 'الْعِشَاءُ']];
+  /* @calc-start */
+  var RAD = Math.PI / 180;
+  function sn(d) { return Math.sin(d * RAD); }
+  function cs(d) { return Math.cos(d * RAD); }
+  function tn(d) { return Math.tan(d * RAD); }
+  function asn(x) { return Math.asin(x) / RAD; }
+  function acs(x) { return Math.acos(x) / RAD; }
+  function at2(y, x) { return Math.atan2(y, x) / RAD; }
+  function fa(a) { return a - 360 * Math.floor(a / 360); }
+  function fh(a) { return a - 24 * Math.floor(a / 24); }
+  function julian(y, m, d) { if (m <= 2) { y -= 1; m += 12; } var A = Math.floor(y / 100), B = 2 - A + Math.floor(A / 4); return Math.floor(365.25 * (y + 4716)) + Math.floor(30.6001 * (m + 1)) + d + B - 1524.5; }
+  function sunPos(jd) {
+    var D = jd - 2451545.0, g = fa(357.529 + 0.98560028 * D), q = fa(280.459 + 0.98564736 * D);
+    var L = fa(q + 1.915 * sn(g) + 0.020 * sn(2 * g)), e = 23.439 - 0.00000036 * D, RA = at2(cs(e) * sn(L), cs(L)) / 15;
+    return { decl: asn(sn(e) * sn(L)), eqt: q / 15 - fh(RA) };
+  }
+  function prayerTimes(lat, lng, tz, y, m, d, method, hanafi) {
+    var jd = julian(y, m, d) - lng / (15 * 24), M = METHODS[method] || METHODS.mwl;
+    var mid = function (t) { return fh(12 - sunPos(jd + t).eqt); };
+    var angleT = function (angle, t, ccw) {
+      var decl = sunPos(jd + t).decl, noon = mid(t);
+      var x = (-sn(angle) - sn(decl) * sn(lat)) / (cs(decl) * cs(lat));
+      if (x > 1 || x < -1) return NaN;
+      var h = acs(x) / 15; return noon + (ccw ? -h : h);
+    };
+    var asrT = function (f, t) { var decl = sunPos(jd + t).decl; return angleT(-(Math.atan(1 / (f + tn(Math.abs(lat - decl)))) / RAD), t, false); };
+    var t = { fajr: 5, sunrise: 6, dhuhr: 12, asr: 13, sunset: 18, isha: 18 };
+    for (var i = 0; i < 2; i++) {
+      var p = {}; for (var k in t) p[k] = t[k] / 24;
+      t = { fajr: angleT(M[1], p.fajr, true), sunrise: angleT(0.833, p.sunrise, true), dhuhr: mid(p.dhuhr), asr: asrT(hanafi ? 2 : 1, p.asr), sunset: angleT(0.833, p.sunset, false), isha: angleT(M[2], p.isha, false) };
+    }
+    var adj = tz - lng / 15, out = {};
+    for (var k2 in t) out[k2] = t[k2] + adj;
+    out.maghrib = out.sunset;
+    return out;
+  }
+  function qibla(lat, lng) {
+    var p1 = lat * RAD, p2 = 21.4225 * RAD, dl = (39.8262 - lng) * RAD;
+    return fa(Math.atan2(Math.sin(dl) * Math.cos(p2), Math.cos(p1) * Math.sin(p2) - Math.sin(p1) * Math.cos(p2) * Math.cos(dl)) / RAD);
+  }
+  /* @calc-end */
+  function fmt(h) {
+    if (isNaN(h)) return '--';
+    h = fh(h + 0.5 / 60); var H = Math.floor(h), m = Math.floor((h - H) * 60);
+    return (H % 12 || 12) + ':' + (m < 10 ? '0' : '') + m + ' ' + (H >= 12 ? 'pm' : 'am');
+  }
+  function cityNow(tz) { var d = new Date(Date.now() + tz * 3600000); return { y: d.getUTCFullYear(), m: d.getUTCMonth() + 1, d: d.getUTCDate(), h: d.getUTCHours() + d.getUTCMinutes() / 60, date: d }; }
+  function place() {
+    var P = S.pr;
+    if (P.city === 'custom') return { name: 'Custom', lat: P.lat, lng: P.lng, tz: -new Date().getTimezoneOffset() / 60 };
+    var c = CITIES.filter(function (x) { return x[0] === P.city; })[0] || CITIES[0];
+    return { name: cname(c), lat: c[1], lng: c[2], tz: 1 };
+  }
+  function nextInfo(pl) {
+    var now = cityNow(pl.tz), P = S.pr, t = prayerTimes(pl.lat, pl.lng, pl.tz, now.y, now.m, now.d, P.method, P.hanafi), order = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
+    for (var i = 0; i < order.length; i++) { if (t[order[i]] > now.h) return { k: order[i], mins: Math.round((t[order[i]] - now.h) * 60), t: t, tt: t }; }
+    var tm = new Date(now.date.getTime() + 86400000), t2 = prayerTimes(pl.lat, pl.lng, pl.tz, tm.getUTCFullYear(), tm.getUTCMonth() + 1, tm.getUTCDate(), P.method, P.hanafi);
+    return { k: 'fajr', mins: Math.round((t2.fajr + 24 - now.h) * 60), t: t, tt: t2, tomorrow: true };
+  }
+  function pname(n) { return S.lang === 'ha' ? n[2] : S.lang === 'both' ? n[1] + ' · ' + n[2] : n[1]; }
+  function cdown(mins) { var h = Math.floor(mins / 60), m = mins % 60; return T('In ', 'Cikin ') + (h ? h + ' h ' : '') + m + ' min'; }
+  function nextChip() {
+    var pl = place(), nx = nextInfo(pl), np = PN.filter(function (n) { return n[0] === nx.k; })[0];
+    var tm = fmt(nx.tomorrow ? nx.tt.fajr : nx.t[nx.k]);
+    return '<span class="hn-l">' + T('Next prayer', 'Sallah mai zuwa') + ' · ' + pl.name.split(',')[0] + '</span><span class="hn-r"><b>' + pname(np) + '</b> ' + tm + '</span><span class="hn-c" id="hcount" data-k="' + nx.k + '">' + cdown(nx.mins) + '</span>';
+  }
+  function tick() {
+    if (S.view === 'prayer') {
+      var el = $('#pcount'); if (!el) return;
+      var nx = nextInfo(place());
+      if (el.getAttribute('data-k') !== nx.k) { render(); return; }
+      el.textContent = cdown(nx.mins);
+    } else if (S.view === 'home') { var c = $('#hchip'); if (c) c.innerHTML = nextChip(); }
+  }
+
+  /* ---------- pieces ---------- */
+  var ICON = {
+    duas: '<path d="M12 6c-2-1.5-5-2-8-1.5V19c3-.5 6 0 8 1.5 2-1.5 5-2 8-1.5V4.5C17 4 14 4.5 12 6z"/><path d="M12 6v14.5"/>',
+    prayer: '<path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5z"/>',
+    tasbih: '<circle cx="12" cy="12" r="8" stroke-width="3.6" stroke-dasharray="0.1 3.55"/><circle cx="12" cy="12" r="1.6"/>',
+    saved: '<path d="M6 3h12v18l-6-4.5L6 21z"/>',
+    rem: '<path d="M6 16v-5a6 6 0 1 1 12 0v5l1.5 2h-15z"/><path d="M10 20a2 2 0 0 0 4 0"/>'
+  };
+  function top() {
+    var lg = [['en', 'English'], ['ha', 'Hausa'], ['both', 'Both']];
+    $('#top').innerHTML = '<div class="brand"><svg class="mark" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="5" width="14" height="14" fill="currentColor"/><rect x="5" y="5" width="14" height="14" transform="rotate(45 12 12)" fill="currentColor"/></svg><span class="bn"><b>Adhkar</b><small>English and Hausa</small></span></div>' +
+      '<div class="seg" role="group" aria-label="Meaning language">' + lg.map(function (l) { return '<button data-act="lang" data-v="' + l[0] + '" aria-pressed="' + (S.lang === l[0]) + '">' + l[1] + '</button>'; }).join('') + '</div>';
+  }
+  function nav() {
+    var items = [['home', 'duas', T('Duas', "Addu'o'i")], ['prayer', 'prayer', T('Prayer', 'Sallah')], ['tasbih', 'tasbih', T('Tasbih', 'Tasbihi')], ['rem', 'rem', T('Alerts', 'Tunatarwa')], ['saved', 'saved', T('Saved', 'Ajiye')]];
+    $('#nav').innerHTML = items.map(function (n) {
+      var cur = (S.view === n[0]) || (n[0] === 'home' && S.view === 'cat');
+      return '<button data-act="go" data-v="' + n[0] + '"' + (cur ? ' aria-current="page"' : '') + '><svg viewBox="0 0 24 24" aria-hidden="true">' + ICON[n[1]] + '</svg>' + n[2] + '</button>';
+    }).join('');
+  }
+  function sizer() {
+    return '<div class="sizer"><span>' + T('Arabic text size', 'Girman rubutun Larabci') + '</span><div class="seg size" role="group" aria-label="Arabic text size"><button data-act="size" data-v="-1" aria-label="Smaller text">A−</button><button data-act="size" data-v="1" aria-label="Larger text">A+</button></div></div>';
+  }
+  function meanings(d) {
+    var h = '';
+    if (S.lang !== 'ha') h += '<p class="mean">' + (S.lang === 'both' ? '<span class="lab">EN</span>' : '') + d.en + '</p>';
+    if (S.lang !== 'en') h += '<p class="mean" lang="ha">' + (S.lang === 'both' ? '<span class="lab">HA</span>' : '') + d.ha + '</p>';
+    return h;
+  }
+  function duaCard(d) {
+    var fav = S.favs.indexOf(d.id) >= 0, c = S.counts[d.id] || 0, head = '';
+    if (d.when) {
+      var h = S.lang === 'ha' ? d.when.ha : S.lang === 'en' ? d.when.en : d.when.en + '<span lang="ha">' + d.when.ha + '</span>';
+      head = '<header class="dh"><h3>' + h + '</h3></header>';
+    }
+    return '<article class="dua" style="--c:' + col(d.ci || 0) + '">' + head + '<div class="dbody">' + (d.note ? '<p class="dnote">' + (S.lang === 'ha' ? d.note.ha : S.lang === 'en' ? d.note.en : d.note.en + '<br><span lang="ha">' + d.note.ha + '</span>') + '</p>' : '') + '<div class="arbox"><p class="ar' + (d.ar.length < 70 ? ' mid' : '') + '" lang="ar" dir="rtl">' + d.ar + '</p></div>' +
+      (d.tr ? '<p class="tr">' + d.tr + '</p>' : '') + meanings(d) +
+      '<div class="meta"><span>' + T('Source', 'Majiya') + ': ' + d.src + '</span>' + (d.rep > 1 ? '<span>' + T('Repeat', 'Maimaita') + ' ×' + d.rep + '</span>' : '') + (d.q ? '<span>' + T('Meaning in simple words, not a formal translation', "Ma'ana a taƙaice, ba cikakkiyar fassara ba") + '</span>' : '') + '</div></div>' +
+      '<div class="acts">' +
+      (d.rep > 1 ? '<button class="chip cnt' + (c >= d.rep ? ' done' : '') + '" data-act="cnt" data-id="' + d.id + '" aria-label="Count">' + c + ' / ' + d.rep + '</button>' : '') +
+      '<span class="spacer"></span>' +
+      '<button class="chip" data-act="copy" data-id="' + d.id + '">' + T('Copy', 'Kwafa') + '</button>' +
+      '<button class="chip" data-act="fav" data-id="' + d.id + '" aria-pressed="' + fav + '">' + (fav ? T('Saved', 'An ajiye') : T('Save', 'Ajiye')) + '</button>' +
+      '</div></article>';
+  }
+
+  /* ---------- today checklist ---------- */
+  function dayKey() { var d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
+  function todayDone() {
+    var k = dayKey();
+    if (!S.today || S.today.d !== k || !Array.isArray(S.today.done)) S.today = { d: k, done: [false, false, false] };
+    return S.today.done;
+  }
+  function todayCard(h) {
+    var done = todayDone(), names = S.lang === 'ha' ? ['Safiya', 'Maraice', 'Kafin barci'] : ['Morning', 'Evening', 'Before sleep'];
+    var due = [true, h >= 15, h >= 20], count = done.filter(Boolean).length, hint = '', next = -1;
+    for (var i = 0; i < 3; i++) { if (due[i] && !done[i]) { next = i; break; } }
+    if (count === 3) hint = T('All done today. May Allah accept it.', 'An gama na yau. Allah Ya karɓa.');
+    else if (next >= 0) hint = S.lang === 'ha' ? 'Na gaba: zikirin ' + names[next].toLowerCase() : 'Next: ' + names[next].toLowerCase() + ' adhkar';
+    else hint = T('Nothing due yet.', 'Babu abin da lokacinsa ya yi tukuna.');
+    return '<section class="today" aria-label="' + T("Today's adhkar", 'Zikirin yau') + '"><div class="th"><b>' + T("Today's adhkar", 'Zikirin yau') + '</b><span>' + count + ' / 3</span></div><div class="tbar"><i style="width:' + Math.round(count / 3 * 100) + '%"></i></div><div class="tchips">' +
+      names.map(function (n, i) { return '<button class="chip tchip" data-act="tday" data-v="' + i + '" aria-pressed="' + done[i] + '">' + (done[i] ? '✓ ' : '') + n + '</button>'; }).join('') +
+      '</div><p class="thint">' + hint + '</p></section>';
+  }
+
+  /* ---------- views ---------- */
+  function searchBox() {
+    return '<label class="search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg><input id="q" type="search" autocomplete="off" aria-label="' + T('Search duas', "Nemo addu'o'i") + '" placeholder="' + T('Search duas: sleep, travel, rain', "Nemo addu'a: barci, tafiya, ruwa") + '" value="' + esc(S.q) + '"></label>';
+  }
+  function catGrid() {
+    var h = new Date().getHours(), tag = h < 12 ? T('Morning now', 'Safiya yanzu') : h >= 15 ? T('Evening now', 'Maraice yanzu') : '';
+    return '<div class="grid">' + CATS.map(function (c, i) {
+      var name = S.lang === 'ha' ? c.ha : c.en, alt = S.lang === 'both' ? '<small lang="ha">' + c.ha + '</small>' : '', n = c.items.length;
+      return '<button class="ccard" data-act="cat" data-id="' + c.id + '" style="--c:' + col(i) + '">' + '<span class="cat-ar" lang="ar">' + c.ar + '</span><span class="cbot">' + (i === 0 && tag ? '<span class="now">' + tag + '</span>' : '') + '<b>' + name + '</b>' + alt + '<small>' + n + ' ' + (S.lang === 'ha' ? "addu'o'i" : (n === 1 ? 'dua' : 'duas')) + '</small></span></button>';
+    }).join('') + '</div>';
+  }
+  function resultsHtml() {
+    var q = norm(S.q || '').trim();
+    if (!q) return catGrid();
+    var toks = q.split(/\s+/);
+    var hits = Object.keys(D).filter(function (id) { var h = hay(D[id]); return toks.every(function (t) { return h.indexOf(t) >= 0; }); });
+    if (!hits.length) return '<div class="empty"><b>' + T('No duas found', "Ba a sami addu'a ba") + '</b>' + T('Try another word, like sleep, travel or rain.', 'Gwada wata kalma daban, kamar barci, tafiya ko ruwa.') + '</div>';
+    return '<div class="rcount">' + hits.length + ' ' + (S.lang === 'ha' ? 'sakamako' : hits.length === 1 ? 'result' : 'results') + '</div>' + sizer() + hits.slice(0, 30).map(function (id) { return duaCard(D[id]); }).join('');
+  }
+  function vHome() {
+    var now = new Date(), h = now.getHours(), dateStr = '';
+    var greet = h < 12 ? T('Good morning', 'Barka da safiya') : h >= 15 ? T('Good evening', 'Barka da yamma') : T('Good afternoon', 'Barka da rana');
+    try { dateStr = now.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' }); } catch (e) {}
+    return '<section class="hero"><p class="hello" lang="ar">السَّلَامُ عَلَيْكُمْ</p><h1>' + greet + '</h1><p class="hdate">' + dateStr + '</p><button class="hchip" id="hchip" data-act="go" data-v="prayer" aria-label="Open prayer times">' + nextChip() + '</button></section>' +
+      todayCard(h) + searchBox() + '<div id="results" class="col">' + resultsHtml() + '</div>' +
+      '<p class="note">' + T('Draft content. Every Arabic text, meaning and source should be reviewed by a knowledgeable person before this app is released.', "Wannan rubutu ne na gwaji. Ya kamata wani masani ya duba kowane rubutun Larabci, ma'ana da majiya kafin a fitar da manhajar.") + '</p>';
+  }
+  function vCat() {
+    var c = byId(S.cat);
+    return '<div class="chead" style="--c:' + col(c.i) + '"><button class="back" data-act="go" data-v="home">← ' + T('All duas', "Dukkan addu'o'i") + '</button><p class="arname" lang="ar">' + c.ar + '</p><h2>' + (S.lang === 'ha' ? c.ha : c.en) + '</h2>' + (S.lang === 'both' ? '<p class="chsub" lang="ha">' + c.ha + '</p>' : '') + '</div>' + sizer() +
+      c.items.map(function (id) { return duaCard(D[id]); }).join('');
+  }
+  function vSaved() {
+    var out = '<div><h2 class="pg">' + T('Saved duas', "Addu'o'in da aka ajiye") + '</h2></div>';
+    if (!S.favs.length) return out + '<div class="empty"><b>' + T('Nothing saved yet', 'Babu abin da aka ajiye tukuna') + '</b>' + T('Tap Save on any dua to keep it here.', "Danna Ajiye a kan kowace addu'a don ajiye ta nan.") + '</div>';
+    return out + sizer() + S.favs.filter(function (id) { return D[id]; }).map(function (id) { return duaCard(D[id]); }).join('');
+  }
+  var R = 2 * Math.PI * 88;
+  function vTasbih() {
+    var t = TAS[S.tas.i], tg = S.tas.target;
+    return '<div><h2 class="pg">' + T('Tasbih counter', "Ma'aunin tasbihi") + '</h2></div><div class="tas">' +
+      '<div class="phrases" role="group" aria-label="Phrase">' + TAS.map(function (p, i) { return '<button data-act="tpick" data-v="' + i + '" aria-pressed="' + (S.tas.i === i) + '">' + p.short + '</button>'; }).join('') + '</div>' +
+      '<p class="ar" lang="ar" dir="rtl">' + t.ar + '</p><p class="tr">' + t.tr + '</p>' + meanings(t) +
+      '<button class="ringbtn" id="ring" data-act="ttap" aria-label="Tap to count"><svg viewBox="0 0 200 200" aria-hidden="true"><circle class="trk" cx="100" cy="100" r="88" fill="none" stroke-width="10"></circle><circle class="bar" id="bar" cx="100" cy="100" r="88" fill="none" stroke-width="10" stroke-linecap="round" stroke-dasharray="' + R.toFixed(1) + '" stroke-dashoffset="' + (R * (1 - S.tas.count / tg)).toFixed(1) + '"></circle></svg><span class="in"><span class="num" id="tnum">' + S.tas.count + '</span><span class="of">/ ' + tg + '</span></span></button>' +
+      '<div class="seg" role="group" aria-label="Target">' + [33, 99, 100].map(function (n) { return '<button data-act="ttarget" data-v="' + n + '" aria-pressed="' + (tg === n) + '">' + n + '</button>'; }).join('') + '</div>' +
+      '<p class="rounds" id="trounds">' + T('Rounds finished', 'Zagaye da aka gama') + ': ' + S.tas.rounds + '</p>' +
+      '<button class="chip" data-act="treset">' + T('Reset', 'Sake farawa') + '</button></div>';
+  }
+  function vPrayer() {
+    var pl = place(), P = S.pr, now = cityNow(pl.tz), t = prayerTimes(pl.lat, pl.lng, pl.tz, now.y, now.m, now.d, P.method, P.hanafi), nx = nextInfo(pl), q = qibla(pl.lat, pl.lng);
+    var np = PN.filter(function (n) { return n[0] === nx.k; })[0];
+    var copts = CITIES.map(function (c) { return '<option value="' + c[0] + '"' + (P.city === c[0] ? ' selected' : '') + '>' + cname(c) + '</option>'; }).join('') + '<option value="custom"' + (P.city === 'custom' ? ' selected' : '') + '>' + T('Other place (coordinates)', "Wani wuri (ma'aunin wuri)") + '</option>';
+    var mopts = Object.keys(METHODS).map(function (k) { return '<option value="' + k + '"' + (P.method === k ? ' selected' : '') + '>' + METHODS[k][0] + '</option>'; }).join('');
+    var out = '<div><h2 class="pg">' + T('Prayer times', 'Lokutan sallah') + '</h2><p class="sub">' + (P.city === 'custom' ? T('For your coordinates', 'Don wurin da ka zaɓa') : T('For ', 'Don ') + pl.name) + '</p></div>';
+    out += '<div class="pnext"><div><div class="lbl">' + T('Next prayer', 'Sallah mai zuwa') + '</div><div class="pnm">' + pname(np) + '</div><div class="pt">' + fmt(nx.tomorrow ? nx.tt.fajr : t[nx.k]) + '</div><div class="cd" id="pcount" data-k="' + nx.k + '">' + cdown(nx.mins) + '</div></div><div class="arn" lang="ar">' + np[3] + '</div></div>';
+    out += '<div class="plist">' + PN.map(function (n) {
+      return '<div class="prow' + (n[0] === nx.k ? ' next' : '') + (n[0] === 'sunrise' ? ' minor' : '') + '"><span><b>' + pname(n) + '</b><small lang="ar">' + n[3] + '</small></span><span class="ptime">' + fmt(t[n[0]]) + '</span></div>';
+    }).join('') + '</div>';
+    out += '<div class="pgrid"><label class="field full">' + T('City', 'Birni') + '<select id="pcity">' + copts + '</select></label>';
+    if (P.city === 'custom') out += '<label class="field">Latitude<input id="plat" type="number" step="any" inputmode="decimal" value="' + P.lat + '"></label><label class="field">Longitude<input id="plng" type="number" step="any" inputmode="decimal" value="' + P.lng + '"></label>';
+    out += '<label class="field">' + T('Method', 'Hanya') + '<select id="pmethod">' + mopts + '</select></label><label class="field">' + T('Asr time', "Lokacin La'asar") + '<select id="pasr"><option value="standard"' + (P.hanafi ? '' : ' selected') + '>' + T('Standard', 'Na yau da kullum') + '</option><option value="hanafi"' + (P.hanafi ? ' selected' : '') + '>Hanafi</option></select></label></div>';
+    out += '<div class="qibla"><svg viewBox="0 0 120 120" width="104" height="104" aria-hidden="true"><circle cx="60" cy="60" r="54" fill="none" style="stroke:var(--line)" stroke-width="4"></circle><text x="60" y="19" text-anchor="middle" font-size="13" style="fill:var(--muted)">N</text><g transform="rotate(' + q.toFixed(1) + ' 60 60)"><path d="M60 24 L69 64 L60 58 L51 64 Z" style="fill:var(--gold-fill)"></path><circle cx="60" cy="60" r="4" style="fill:var(--brand)"></circle></g></svg><div><p>' + T('Qibla direction', 'Alƙiblar sallah') + '</p><p class="deg">' + Math.round(q) + '°</p><p class="sub">' + T('Clockwise from true north. Use a compass app to find it.', 'Daga arewa ta gaskiya, bisa agogo. Yi amfani da manhajar kampas.') + '</p></div></div>';
+    out += '<p class="note">' + T('Times are calculated from the sun and can differ by a few minutes from your local mosque. Follow your local masjid timetable when it differs.', "An ƙididdige lokutan ne daga rana, kuma suna iya bambanta da na masallacinku da 'yan mintuna. Bi jadawalin masallacinku idan ya bambanta.") + '</p>';
+    return out;
+  }
+  /* ---------- reminders (real notifications work in the Android app) ---------- */
+  var REM_DEF = { morning: { on: false, t: '05:45' }, evening: { on: false, t: '16:30' }, sleep: { on: false, t: '21:30' }, prayers: { fajr: false, dhuhr: false, asr: false, maghrib: false, isha: false } };
+  var PKEYS = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
+  function remNorm() { var r = S.rem; if (!r || !r.morning || !r.evening || !r.sleep || !r.prayers) S.rem = JSON.parse(JSON.stringify(REM_DEF)); }
+  function LN() { try { return (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.LocalNotifications) || null; } catch (e) { return null; } }
+  function isNative() { try { return !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform() && LN()); } catch (e) { return false; } }
+  function remAny() { var r = S.rem; return r.morning.on || r.evening.on || r.sleep.on || PKEYS.some(function (k) { return r.prayers[k]; }); }
+  function sname(n) { return S.lang === 'ha' ? n[2] : n[1]; }
+  function dTitle(k) { return k === 'morning' ? T('Morning adhkar', 'Zikirin safiya') : k === 'evening' ? T('Evening adhkar', 'Zikirin maraice') : T('Adhkar before sleep', 'Zikirin kafin barci'); }
+  function dBody(k) { return k === 'morning' ? T('Time for your morning adhkar.', 'Lokaci ya yi na zikirin safiya.') : k === 'evening' ? T('Time for your evening adhkar.', 'Lokaci ya yi na zikirin maraice.') : T('Read your adhkar before you sleep.', 'Karanta zikirinka kafin ka yi barci.'); }
+  async function applyReminders(ask) {
+    var ln = LN(); if (!ln) return 'web';
+    var perm;
+    try { perm = ask ? await ln.requestPermissions() : await ln.checkPermissions(); } catch (e) { return 'error'; }
+    if (!perm || perm.display !== 'granted') return 'denied';
+    try {
+      var pend = await ln.getPending();
+      if (pend && pend.notifications && pend.notifications.length) await ln.cancel({ notifications: pend.notifications.map(function (n) { return { id: n.id }; }) });
+      var list = [], r = S.rem, now = Date.now();
+      [['morning', 101], ['evening', 102], ['sleep', 103]].forEach(function (x) {
+        var d = r[x[0]]; if (!d.on) return;
+        var hm = d.t.split(':');
+        list.push({ id: x[1], title: dTitle(x[0]), body: dBody(x[0]), schedule: { on: { hour: Number(hm[0]), minute: Number(hm[1]) }, repeats: true, allowWhileIdle: true } });
+      });
+      if (PKEYS.some(function (k) { return r.prayers[k]; })) {
+        var pl = place();
+        for (var day = 0; day < 14; day++) {
+          var dt = new Date(now + pl.tz * 3600000 + day * 86400000);
+          var y = dt.getUTCFullYear(), m = dt.getUTCMonth() + 1, dd = dt.getUTCDate();
+          var t = prayerTimes(pl.lat, pl.lng, pl.tz, y, m, dd, S.pr.method, S.pr.hanafi);
+          PKEYS.forEach(function (k, i) {
+            if (!r.prayers[k]) return;
+            var h = t[k]; if (isNaN(h)) return;
+            var at = Date.UTC(y, m - 1, dd) + (h - pl.tz) * 3600000;
+            if (at <= now + 30000) return;
+            var np = PN.filter(function (n) { return n[0] === k; })[0];
+            list.push({ id: 1000 + day * 10 + i, title: sname(np), body: T('It is time for the prayer', 'Lokacin sallah ya yi') + ' · ' + pl.name.split(',')[0], schedule: { at: new Date(at), allowWhileIdle: true } });
+          });
+        }
+      }
+      if (list.length) await ln.schedule({ notifications: list });
+      return 'ok';
+    } catch (e) { return 'error'; }
+  }
+  function remMsg(r) { return r === 'web' ? T('Saved. Reminders ring in the Android app.', 'An ajiye. Tunatarwa na aiki a manhajar Android.') : r === 'denied' ? T('Allow notifications in your phone settings to get reminders.', 'Ka ba da izinin sanarwa a saitin wayarka don samun tunatarwa.') : r === 'error' ? T('Could not set the reminders. Try again.', 'Ba a iya saita tunatarwa ba. Sake gwadawa.') : T('Reminders are set.', 'An saita tunatarwa.'); }
+  async function remChanged() { store.set('rem', S.rem); var res = await applyReminders(true); toast(remMsg(res)); }
+  function vRem() {
+    var r = S.rem, native = isNative();
+    var rows = [['morning', T('Morning adhkar', 'Zikirin safiya')], ['evening', T('Evening adhkar', 'Zikirin maraice')], ['sleep', T('Before sleep', 'Kafin barci')]];
+    var out = '<div><h2 class="pg">' + T('Reminders', 'Tunatarwa') + '</h2><p class="sub">' + T('Get a notification at the time you choose.', 'Samu sanarwa a lokacin da ka zaɓa.') + '</p></div>';
+    out += '<p class="note">' + (native ? T('Reminders ring even when the app is closed.', 'Tunatarwa na yin ƙara ko da manhajar a rufe take.') : T('This web preview only saves your choices. Install the Android app to get real notifications.', 'Wannan samfurin yanar gizo yana ajiye zaɓinka ne kawai. Ka sanya manhajar Android don samun sanarwa ta gaske.')) + '</p>';
+    out += rows.map(function (x) {
+      var d = r[x[0]];
+      return '<div class="rrow"><div><b>' + x[1] + '</b><label class="rtime"><span>' + T('Time', 'Lokaci') + '</span><input id="rt-' + x[0] + '" type="time" value="' + d.t + '"></label></div><button class="sw" data-act="rtoggle" data-v="' + x[0] + '" role="switch" aria-checked="' + d.on + '" aria-label="' + x[1] + '"></button></div>';
+    }).join('');
+    out += '<div class="rcard"><b>' + T('Prayer time alerts', 'Sanarwar lokutan sallah') + '</b><p class="sub">' + T('For ', 'Don ') + place().name + '. ' + T('Change the city in the Prayer tab.', 'Canza birni a shafin Sallah.') + '</p><div class="rchips">' +
+      PN.filter(function (n) { return n[0] !== 'sunrise'; }).map(function (n) { return '<button class="chip" data-act="rptoggle" data-v="' + n[0] + '" aria-pressed="' + r.prayers[n[0]] + '">' + sname(n) + '</button>'; }).join('') + '</div></div>';
+    return out;
+  }
+  function render() {
+    top(); nav();
+    $('#main').innerHTML = S.view === 'home' ? vHome() : S.view === 'cat' ? vCat() : S.view === 'saved' ? vSaved() : S.view === 'prayer' ? vPrayer() : S.view === 'rem' ? vRem() : vTasbih();
+    clearInterval(S.timer);
+    if (S.view === 'prayer' || S.view === 'home') S.timer = setInterval(tick, 30000);
+  }
+
+  /* ---------- actions ---------- */
+  function tapTasbih() {
+    var s = S.tas; s.count++; vib(12);
+    var ring = $('#ring');
+    $('#tnum').textContent = s.count;
+    $('#bar').setAttribute('stroke-dashoffset', (R * (1 - Math.min(s.count, s.target) / s.target)).toFixed(1));
+    if (s.count >= s.target) {
+      s.rounds++; vib([80, 60, 120]); ring.classList.add('full');
+      $('#trounds').textContent = T('Rounds finished', 'Zagaye da aka gama') + ': ' + s.rounds;
+      setTimeout(function () { s.count = 0; store.set('tas', s); if (S.view === 'tasbih') { $('#tnum').textContent = 0; $('#bar').setAttribute('stroke-dashoffset', R.toFixed(1)); ring.classList.remove('full'); } }, 700);
+    }
+    store.set('tas', s);
+  }
+  function copyDua(id) {
+    var d = D[id], txt = d.ar + '\n' + (d.tr || '') + '\n' + d.en + '\n' + d.ha;
+    try { navigator.clipboard.writeText(txt).then(function () { toast(T('Copied', 'An kwafa')); }, function () { toast(T('Copy is not available here', 'Ba a iya kwafawa a nan')); }); }
+    catch (e) { toast(T('Copy is not available here', 'Ba a iya kwafawa a nan')); }
+  }
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-act]'); if (!b) return;
+    var a = b.getAttribute('data-act'), v = b.getAttribute('data-v'), id = b.getAttribute('data-id');
+    if (a === 'lang') { S.lang = v; store.set('lang', v); render(); }
+    else if (a === 'size') { S.size = Math.max(0, Math.min(2, S.size + Number(v))); store.set('size', S.size); applySize(); }
+    else if (a === 'go') { S.view = v; S.q = ''; window.scrollTo(0, 0); render(); }
+    else if (a === 'cat') { S.view = 'cat'; S.cat = id; S.q = ''; window.scrollTo(0, 0); render(); }
+    else if (a === 'fav') {
+      var i = S.favs.indexOf(id); if (i >= 0) S.favs.splice(i, 1); else S.favs.push(id);
+      store.set('favs', S.favs);
+      if (S.view === 'saved') render(); else { var on = S.favs.indexOf(id) >= 0; b.setAttribute('aria-pressed', String(on)); b.textContent = on ? T('Saved', 'An ajiye') : T('Save', 'Ajiye'); }
+    }
+    else if (a === 'copy') copyDua(id);
+    else if (a === 'cnt') {
+      var d = D[id], c = (S.counts[id] || 0) + 1; vib(10);
+      if (c > d.rep) c = 1;
+      S.counts[id] = c; b.textContent = c + ' / ' + d.rep; b.classList.toggle('done', c >= d.rep);
+      if (c === d.rep) vib([60, 40, 100]);
+    }
+    else if (a === 'tday') { var dn = todayDone(); dn[Number(v)] = !dn[Number(v)]; store.set('today', S.today); vib(10); render(); }
+    else if (a === 'rtoggle') { S.rem[v].on = !S.rem[v].on; b.setAttribute('aria-checked', String(S.rem[v].on)); remChanged(); }
+    else if (a === 'rptoggle') { S.rem.prayers[v] = !S.rem.prayers[v]; b.setAttribute('aria-pressed', String(S.rem.prayers[v])); remChanged(); }
+    else if (a === 'tpick') { S.tas.i = Number(v); S.tas.count = 0; store.set('tas', S.tas); render(); }
+    else if (a === 'ttarget') { S.tas.target = Number(v); S.tas.count = 0; store.set('tas', S.tas); render(); }
+    else if (a === 'ttap') tapTasbih();
+    else if (a === 'treset') { S.tas.count = 0; S.tas.rounds = 0; store.set('tas', S.tas); render(); }
+  });
+  document.addEventListener('input', function (e) {
+    if (e.target.id !== 'q') return;
+    S.q = e.target.value; var r = $('#results'); if (r) r.innerHTML = resultsHtml();
+  });
+  document.addEventListener('change', function (e) {
+    var id = e.target.id, v = e.target.value;
+    if (id.indexOf('rt-') === 0) { var rk = id.slice(3); if (S.rem[rk] && /^\d\d:\d\d$/.test(v)) { S.rem[rk].t = v; remChanged(); } return; }
+    if (id === 'pcity') { if (v === 'custom') { var pl = place(); S.pr.lat = pl.lat; S.pr.lng = pl.lng; } S.pr.city = v; }
+    else if (id === 'pmethod') S.pr.method = v;
+    else if (id === 'pasr') S.pr.hanafi = v === 'hanafi';
+    else if (id === 'plat' || id === 'plng') {
+      var n = parseFloat(v); if (isNaN(n)) return;
+      if (id === 'plat') S.pr.lat = Math.max(-66, Math.min(66, n)); else S.pr.lng = Math.max(-180, Math.min(180, n));
+    } else return;
+    store.set('pr', S.pr); render();
+    if (isNative() && remAny()) applyReminders(false);
+  });
+  if (!S.pr || typeof S.pr.lat !== 'number') S.pr = { city: 'Kano', method: 'mwl', hanafi: false, lat: 12.0022, lng: 8.592 };
+  if (!S.tas || typeof S.tas.target !== 'number') S.tas = { i: 0, target: 33, count: 0, rounds: 0 };
+  remNorm();
+  applySize(); render();
+  if (isNative() && remAny()) applyReminders(false);
+})();
+</script>
+
+</body>
+</html>
