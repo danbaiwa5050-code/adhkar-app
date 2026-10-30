@@ -3,6 +3,8 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
+permissions:
+  contents: write
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -39,3 +41,8 @@ jobs:
         with:
           name: adhkar-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
+      - name: Publish APK as a release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "v${{ github.run_number }}" android/app/build/outputs/apk/debug/app-debug.apk --title "Adhkar APK ${{ github.run_number }}" --notes "Debug build for testing"
